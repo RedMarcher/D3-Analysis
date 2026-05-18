@@ -1,0 +1,341 @@
+/* Premium Interactive Dashboard Components */
+
+/* Glass Cards */
+.glass-card {
+  background: var(--bg-surface);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-md);
+  transition: border-color var(--transition-normal), box-shadow var(--transition-normal), transform var(--transition-normal);
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-card:hover {
+  border-color: var(--border-color-hover);
+  box-shadow: var(--shadow-md), 0 10px 30px -10px rgba(0, 242, 254, 0.05);
+  transform: translateY(-2px);
+}
+
+.glass-card-title {
+  font-family: var(--font-family-title);
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 1.25rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Metric KPI Cards */
+.metric-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1.25rem 1.5rem;
+}
+
+.metric-label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-secondary);
+}
+
+.metric-value {
+  font-family: var(--font-family-title);
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.metric-trend {
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.metric-trend.up {
+  color: var(--accent-success);
+}
+
+.metric-trend.down {
+  color: var(--accent-danger);
+}
+
+/* Chart Container Wrapper */
+.chart-container-wrapper {
+  position: relative;
+  width: 100%;
+  height: 380px; /* Base static height for charts, fully responsive width */
+  min-height: 250px;
+}
+
+.chart-container-wrapper svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Form Controls & Sidebar Filters */
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.control-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.custom-select {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  color: var(--text-primary);
+  padding: 0.625rem 1rem;
+  font-family: var(--font-family-body);
+  font-size: 0.875rem;
+  outline: none;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background-color var(--transition-fast);
+}
+
+.custom-select:focus, .custom-select:hover {
+  border-color: var(--accent-primary);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.custom-select option {
+  background: #0f111a;
+  color: var(--text-primary);
+}
+
+/* Slider Controls */
+.slider-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.slider-val-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.custom-slider {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  outline: none;
+  cursor: pointer;
+}
+
+.custom-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(0, 242, 254, 0.5);
+  transition: transform var(--transition-fast);
+}
+
+.custom-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.25);
+}
+
+/* D3 Visualization SVG Styles */
+.d3-axis path,
+.d3-axis line {
+  stroke: rgba(255, 255, 255, 0.12);
+}
+
+.d3-axis text {
+  fill: var(--text-secondary);
+  font-family: var(--font-family-body);
+  font-size: 0.75rem;
+  font-weight: 400;
+}
+
+.d3-grid-lines line {
+  stroke: rgba(255, 255, 255, 0.05);
+  stroke-dasharray: 4, 4;
+}
+
+/* Chart Paths & Node Dots */
+.chart-path {
+  fill: none;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: stroke-dasharray var(--transition-slow);
+}
+
+.chart-area {
+  opacity: 0.15;
+  transition: opacity var(--transition-normal);
+}
+
+.chart-node {
+  stroke-width: 1.5;
+  transition: r var(--transition-fast), stroke-width var(--transition-fast);
+  cursor: pointer;
+}
+
+/* Hover Zoom effects */
+.chart-node:hover {
+  stroke-width: 2.5;
+  filter: brightness(1.2);
+}
+
+/* Donut Slice */
+.donut-slice {
+  stroke: var(--bg-base);
+  stroke-width: 2px;
+  cursor: pointer;
+  transition: transform var(--transition-normal), opacity var(--transition-fast);
+}
+
+.donut-slice:hover {
+  opacity: 0.9;
+}
+
+/* D3 HTML Custom Tooltip */
+.d3-tooltip {
+  position: absolute;
+  padding: 0.75rem 1rem;
+  background: rgba(10, 11, 16, 0.9);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--border-radius-sm);
+  color: var(--text-primary);
+  font-family: var(--font-family-body);
+  font-size: 0.8125rem;
+  pointer-events: none;
+  opacity: 0;
+  box-shadow: var(--shadow-md);
+  transition: opacity 0.2s ease-out;
+  z-index: 100;
+}
+
+.d3-tooltip-title {
+  font-weight: 700;
+  font-family: var(--font-family-title);
+  margin-bottom: 0.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 0.25rem;
+}
+
+.d3-tooltip-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-top: 0.25rem;
+}
+
+.d3-tooltip-val {
+  font-weight: 600;
+  color: var(--accent-primary);
+}
+
+/* Legend items */
+.legend-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 1rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.legend-color {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+/* Interactive Buttons */
+.btn-reset {
+  background: linear-gradient(135deg, rgba(0, 242, 254, 0.1) 0%, rgba(79, 172, 254, 0.1) 100%);
+  border: 1px solid rgba(0, 242, 254, 0.3);
+  color: var(--text-primary);
+  padding: 0.625rem 1rem;
+  border-radius: var(--border-radius-sm);
+  font-family: var(--font-family-title);
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  outline: none;
+  transition: background var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-reset:hover {
+  background: linear-gradient(135deg, rgba(0, 242, 254, 0.2) 0%, rgba(79, 172, 254, 0.2) 100%);
+  border-color: var(--accent-primary);
+  box-shadow: var(--shadow-glow);
+}
+
+/* Skeleton Loading Screen */
+.skeleton-loader {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--bg-surface);
+  backdrop-filter: var(--glass-blur);
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  opacity: 1;
+  transition: opacity 0.5s ease-out;
+  border-radius: var(--border-radius-md);
+}
+
+.skeleton-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(0, 242, 254, 0.1);
+  border-top-color: var(--accent-primary);
+  border-radius: 50%;
+  animation: spin 1s infinite linear;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

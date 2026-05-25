@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Agnostic D3.js Visualization Dashboard</title>
+  <title>Economic Realities of US Data Center Expansion - Interactive Slideshow</title>
   <!-- SEO Elements -->
-  <meta name="description" content="A premium data-agnostic dashboard skeleton powered by D3.js and modern ES modules.">
+  <meta name="description" content="An interactive, D3.js powered persuasive slideshow analyzing the true resource cost, energy demand, and employment impact of data centers in the U.S.">
   <link rel="stylesheet" href="/src/styles/main.css">
 </head>
 <body>
@@ -16,60 +16,52 @@
     <!-- Header Section -->
     <header class="app-header">
       <div class="app-title-group">
-        <h1 id="main-header-title">Dynamic Analytics Hub</h1>
-        <p id="main-header-subtitle">Configurable D3.js driven multi-dimensional visualization suite</p>
+        <h1 id="main-header-title">U.S. Data Center Impact Inquiry</h1>
+        <p id="main-header-subtitle">Do Data Centers bring Net Economic Benefits to the United States?</p>
       </div>
-      <div>
-        <button id="btn-reset-filters" class="btn-reset" aria-label="Reset Dashboard Filters">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
-          Reset View
-        </button>
+      <!-- Step progress text -->
+      <div class="app-footer-info" id="slide-progress-text" style="font-weight: 700; color: var(--accent-primary); font-family: var(--font-family-title); letter-spacing: 0.5px;">
+        Slide 1 of 4
       </div>
     </header>
 
-    <!-- Main Dashboard Grid -->
+    <!-- Main Slideshow Grid -->
     <div class="dashboard-grid">
-      <!-- Left Sidebar controls -->
-      <aside class="sidebar-panel">
-        <h2 class="control-label" style="font-family: var(--font-family-title); font-size: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; margin-bottom: 0.5rem; color: var(--text-primary);">Controls</h2>
+      
+      <!-- Left Panel: Persuasive Narrative Sidebar -->
+      <aside class="narrative-panel" id="slideshow-narrative-container">
+        <div class="narrative-header">
+          <span class="narrative-slide-number" id="narrative-slide-lbl">Case Study 1</span>
+          <h2 class="narrative-title" id="narrative-slide-title">Infrastructure Growth</h2>
+        </div>
         
-        <!-- Dropdown Filter -->
-        <div class="control-group">
-          <label for="select-group-filter" class="control-label">Highlight Group</label>
-          <select id="select-group-filter" class="custom-select">
-            <option value="ALL">Show All Groups</option>
-            <!-- Dynamically populated options -->
-          </select>
+        <div class="narrative-body" id="narrative-slide-body">
+          <p>Analyzing the scale and future projections of data center construction.</p>
+          <ul class="narrative-bullets">
+            <li>Virginia, California, and Texas hold the highest concentrations of facilities.</li>
+            <li>Planned additions show that growth is accelerated and continuous.</li>
+          </ul>
         </div>
 
-        <!-- Range Slider Filter -->
-        <div class="control-group slider-container">
-          <div class="slider-val-row">
-            <span class="control-label">Temporal Range</span>
-            <span id="slider-range-val">1990 - 2025</span>
+        <!-- Takeaway Box: Conclusive Takeaway Connotation (Direct Rebuttal) -->
+        <div class="takeaway-card" id="narrative-takeaway-container">
+          <div class="takeaway-title" id="narrative-takeaway-title">Conclusive Takeaway</div>
+          <div class="takeaway-text" id="narrative-takeaway-text">
+            Understanding the massive physical footprint is critical to evaluating its true net value.
           </div>
-          <input type="range" id="input-range-filter" class="custom-slider" min="0" max="10" step="1" value="5">
-        </div>
-
-        <!-- Dimension Configurator -->
-        <div class="control-group">
-          <label for="select-y-metric" class="control-label">Y-Axis Metric</label>
-          <select id="select-y-metric" class="custom-select">
-            <option value="value">Agnostic Trend Value</option>
-          </select>
         </div>
       </aside>
 
-      <!-- Main Visualizations Area -->
-      <main class="main-panel">
-        <!-- Dashboard Key Indicators Row -->
+      <!-- Right Panel: Presentation Area (KPIs + Visuals) -->
+      <main class="main-presentation-panel">
+        
+        <!-- Top Metrics Row: KPIs -->
         <div class="metrics-row" id="metrics-card-container">
           <!-- Metric Card 1 -->
           <div class="glass-card metric-card" id="kpi-card-1">
             <span class="metric-label" id="kpi-label-1">Overall Total</span>
             <span class="metric-value" id="kpi-val-1">0</span>
             <span class="metric-trend up" id="kpi-trend-1">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
               <span>--</span>
             </span>
           </div>
@@ -79,7 +71,6 @@
             <span class="metric-label" id="kpi-label-2">Peak Threshold</span>
             <span class="metric-value" id="kpi-val-2">0</span>
             <span class="metric-trend down" id="kpi-trend-2">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
               <span>--</span>
             </span>
           </div>
@@ -88,64 +79,73 @@
           <div class="glass-card metric-card" id="kpi-card-3">
             <span class="metric-label" id="kpi-label-3">Active Segments</span>
             <span class="metric-value" id="kpi-val-3">0</span>
-            <span class="metric-trend up" id="kpi-trend-3" style="color: var(--accent-secondary)">
-              <span>Dynamic</span>
+            <span class="metric-trend up" id="kpi-trend-3">
+              <span>--</span>
             </span>
           </div>
         </div>
 
-        <!-- Row 2: Visualizations Grid -->
+        <!-- Middle Visualizations: Map + Supporting Chart -->
         <div class="charts-grid">
-          <!-- Large Visualization Block: Line Chart -->
-          <div class="glass-card charts-grid-full" style="position: relative;">
-            <div id="loader-line-chart" class="skeleton-loader">
+          <!-- Left Column: Central US Map -->
+          <div class="glass-card" style="position: relative; display: flex; flex-direction: column;">
+            <div id="loader-us-map" class="skeleton-loader">
               <div class="skeleton-spinner"></div>
-              <span class="control-label">Drawing Trends Graph...</span>
+              <span class="control-label">Projecting Geographic Data...</span>
             </div>
             <div class="glass-card-title">
-              <span>Chronological Trends Projection</span>
-              <span style="font-size: 0.8125rem; font-weight: 500; color: var(--accent-primary);">Modular TimeScale</span>
+              <span id="us-map-title">U.S. Data Center Regional Concentration</span>
+              <span id="us-map-mode-badge" style="font-size: 0.8125rem; font-weight: 700; color: var(--accent-primary); font-family: var(--font-family-title);">Albers USA</span>
             </div>
-            <div class="chart-container-wrapper" id="container-line-chart"></div>
-            <div class="legend-container" id="legend-line-chart"></div>
+            <!-- Bounding container for the D3 US Map -->
+            <div class="chart-container-wrapper" id="container-us-map" style="flex-grow: 1; height: 380px;"></div>
           </div>
 
-          <!-- Two Half Column Visualization Blocks -->
-          <!-- Scatter Plot -->
-          <div class="glass-card" style="position: relative;">
-            <div id="loader-scatter-plot" class="skeleton-loader">
+          <!-- Right Column: Supporting Context Chart -->
+          <div class="glass-card" style="position: relative; display: flex; flex-direction: column;">
+            <div id="loader-supporting-chart" class="skeleton-loader">
               <div class="skeleton-spinner"></div>
-              <span class="control-label">Computing Core Distributions...</span>
+              <span class="control-label">Synthesizing Connotation Visuals...</span>
             </div>
             <div class="glass-card-title">
-              <span>Multi-Dimensional Relational Analysis</span>
-              <span style="font-size: 0.8125rem; font-weight: 500; color: var(--accent-secondary);">Bubble Plot</span>
+              <span id="supporting-chart-title">Visual Context Breakdown</span>
+              <span style="font-size: 0.8125rem; font-weight: 700; color: var(--accent-secondary); font-family: var(--font-family-title);">D3 Chart</span>
             </div>
-            <div class="chart-container-wrapper" id="container-scatter-plot"></div>
-            <div class="legend-container" id="legend-scatter-plot"></div>
-          </div>
-
-          <!-- Donut Breakdown -->
-          <div class="glass-card" style="position: relative;">
-            <div id="loader-donut-chart" class="skeleton-loader">
-              <div class="skeleton-spinner"></div>
-              <span class="control-label">Grouping Categorical Shares...</span>
-            </div>
-            <div class="glass-card-title">
-              <span>Proportional Segment Breakdown</span>
-              <span style="font-size: 0.8125rem; font-weight: 500; color: var(--accent-tertiary);">Arc Ratio</span>
-            </div>
-            <div class="chart-container-wrapper" id="container-donut-chart"></div>
-            <div class="legend-container" id="legend-donut-chart"></div>
+            <!-- Bounding container for supporting D3 charts -->
+            <div class="chart-container-wrapper" id="container-supporting-chart" style="flex-grow: 1; height: 380px;"></div>
+            <div class="legend-container" id="legend-supporting-chart"></div>
           </div>
         </div>
+
       </main>
     </div>
 
-    <!-- Footer -->
-    <footer class="app-footer">
-      <div>Agnostic D3 Dashboard Framework • Version 1.0</div>
-      <div>Press <kbd style="background: rgba(255,255,255,0.06); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border-color);">Ctrl+R</kbd> or use filters above to refresh data models.</div>
+    <!-- Slideshow Navigation Footer -->
+    <footer class="slideshow-footer">
+      <div class="app-footer-info">
+        Press <kbd style="background: rgba(255,255,255,0.06); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border-color); font-family: var(--font-family-title); font-size: 0.75rem;">←</kbd> and <kbd style="background: rgba(255,255,255,0.06); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border-color); font-family: var(--font-family-title); font-size: 0.75rem;">→</kbd> arrow keys to navigate.
+      </div>
+      
+      <!-- Core nav buttons -->
+      <div class="slide-nav-controls">
+        <button id="btn-slide-prev" class="btn-nav" aria-label="Previous Slide">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:2px;"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          Back
+        </button>
+
+        <!-- Slide Indicators -->
+        <div class="slide-indicators" id="slide-indicators-wrapper">
+          <div class="slide-dot active" data-index="0" role="button" aria-label="Go to Slide 1"></div>
+          <div class="slide-dot" data-index="1" role="button" aria-label="Go to Slide 2"></div>
+          <div class="slide-dot" data-index="2" role="button" aria-label="Go to Slide 3"></div>
+          <div class="slide-dot" data-index="3" role="button" aria-label="Go to Slide 4"></div>
+        </div>
+
+        <button id="btn-slide-next" class="btn-nav primary" aria-label="Next Slide">
+          Next
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left:2px;"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
+      </div>
     </footer>
   </div>
 

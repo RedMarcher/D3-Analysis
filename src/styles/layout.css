@@ -1,4 +1,4 @@
-/* Dashboard Grid Layout System */
+/* Slideshow Dashboard Grid Layout System */
 
 *, *::before, *::after {
   box-sizing: border-box;
@@ -23,7 +23,7 @@ body::before {
   left: -10%;
   width: 50%;
   height: 50%;
-  background: radial-gradient(circle, rgba(0, 242, 254, 0.03) 0%, rgba(0, 0, 0, 0) 70%);
+  background: radial-gradient(circle, rgba(0, 242, 254, 0.04) 0%, rgba(0, 0, 0, 0) 70%);
   z-index: -1;
   pointer-events: none;
 }
@@ -35,7 +35,7 @@ body::after {
   right: -10%;
   width: 60%;
   height: 60%;
-  background: radial-gradient(circle, rgba(177, 0, 255, 0.03) 0%, rgba(0, 0, 0, 0) 70%);
+  background: radial-gradient(circle, rgba(177, 0, 255, 0.04) 0%, rgba(0, 0, 0, 0) 70%);
   z-index: -1;
   pointer-events: none;
 }
@@ -47,8 +47,8 @@ body::after {
   min-height: 100vh;
   max-width: 1600px;
   margin: 0 auto;
-  padding: 1.5rem;
-  gap: 1.5rem;
+  padding: 1rem 1.5rem 1.5rem 1.5rem;
+  gap: 1.25rem;
 }
 
 /* Header styling */
@@ -67,30 +67,31 @@ body::after {
 
 .app-title-group h1 {
   font-family: var(--font-family-title);
-  font-size: 1.75rem;
-  font-weight: 700;
+  font-size: 1.6rem;
+  font-weight: 800;
   background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   letter-spacing: -0.5px;
 }
 
 .app-title-group p {
   color: var(--text-secondary);
-  font-size: 0.875rem;
-  margin-top: 0.25rem;
+  font-size: 0.85rem;
+  margin-top: 0.15rem;
 }
 
-/* Dashboard Body Core */
+/* Slideshow Dashboard Main Body */
 .dashboard-grid {
   display: grid;
-  grid-template-columns: 280px 1fr;
+  grid-template-columns: 350px 1fr;
   gap: 1.5rem;
-  align-items: start;
+  align-items: stretch;
 }
 
-/* Sidebar Filter Column */
-.sidebar-panel {
+/* Sidebar Narrative Panel */
+.narrative-panel {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
@@ -101,71 +102,108 @@ body::after {
   border-radius: var(--border-radius-md);
   padding: 1.5rem;
   box-shadow: var(--shadow-md);
-  position: sticky;
-  top: 1.5rem;
+  height: 100%;
+  min-height: 600px;
 }
 
-/* Visualization Panel */
-.main-panel {
+/* Main Presentation Area */
+.main-presentation-panel {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-}
-
-/* Numeric Summary Metrics Cards Grid */
-.metrics-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1.25rem;
 }
 
-/* Primary Visualizations Area */
+/* Metrics Row */
+.metrics-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem;
+}
+
+/* Visualizations Grid (Map + Side Chart) */
 .charts-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1.5rem;
+  grid-template-columns: 1.2fr 0.8fr; /* Map gets more space */
+  gap: 1.25rem;
+  align-items: stretch;
 }
 
-.charts-grid-full {
-  grid-column: span 2;
-}
-
-/* Footer layout */
-.app-footer {
+/* Slide Navigation Footer */
+.slideshow-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 1rem 1.5rem;
-  border-top: 1px solid var(--border-color);
-  color: var(--text-muted);
-  font-size: 0.8125rem;
+  background: var(--bg-surface);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-sm);
   margin-top: auto;
 }
 
+.slide-nav-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.slide-indicators {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.slide-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.slide-dot.active {
+  background: var(--accent-primary);
+  box-shadow: 0 0 8px var(--accent-primary);
+  transform: scale(1.25);
+}
+
+.app-footer-info {
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+}
+
 /* Responsive Overrides */
-@media (max-width: 1100px) {
+@media (max-width: 1200px) {
   .dashboard-grid {
     grid-template-columns: 1fr;
   }
   
-  .sidebar-panel {
-    position: relative;
-    top: 0;
+  .narrative-panel {
+    min-height: auto;
+  }
+  
+  .charts-grid {
+    grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 768px) {
-  .charts-grid {
+  .metrics-row {
     grid-template-columns: 1fr;
   }
   
-  .charts-grid-full {
-    grid-column: span 1;
+  .app-header, .slideshow-footer {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+    text-align: center;
   }
   
-  .app-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
+  .slide-nav-controls {
+    justify-content: center;
   }
 }

@@ -14,9 +14,11 @@ export class BarChart {
     this.config = {
       xKey: config.xKey || 'value',
       yKey: config.yKey || 'label',
-      margin: config.margin || { top: 20, right: 30, bottom: 30, left: 90 },
+      margin: config.margin || { top: 20, right: 30, bottom: 30, left: 110 },
       colors: config.colors || ['#00f2fe', '#4facfe', '#b100ff', '#ffb700', '#ff0844'],
-      yLabel: config.yLabel || ''
+      yLabel: config.yLabel || '',
+      xTickFormat: config.xTickFormat || (d => `${d}%`),
+      tooltipFormatter: config.tooltipFormatter || null
     };
 
     this.svg = null;
@@ -44,8 +46,11 @@ export class BarChart {
     this.yAxisGroup = this.g.append('g').attr('class', 'd3-axis y-axis');
 
     // Watch resize events
-    const resizeObserver = new ResizeObserver(() => this.resize());
-    resizeObserver.observe(this.container);
+    if (this.container.__resizeObserver) {
+      this.container.__resizeObserver.disconnect();
+    }
+    this.container.__resizeObserver = new ResizeObserver(() => this.resize());
+    this.container.__resizeObserver.observe(this.container);
   }
 
   /**
@@ -85,7 +90,7 @@ export class BarChart {
     this.xAxisGroup
       .attr('transform', `translate(0, ${innerHeight})`)
       .transition().duration(500)
-      .call(d3.axisBottom(xScale).ticks(5).tickFormat(d => `${d}%`));
+      .call(d3.axisBottom(xScale).ticks(5).tickFormat(this.config.xTickFormat));
 
     this.yAxisGroup
       .transition().duration(500)
@@ -135,17 +140,22 @@ export class BarChart {
           .transition().duration(150)
           .style('opacity', 0.85);
 
-        const htmlContent = `
-          <div class="d3-tooltip-title">U.S. Grid Electricity</div>
-          <div class="d3-tooltip-row">
-            <span>Generation Source:</span>
-            <span class="d3-tooltip-val" style="color: ${colorScale(d[yKey])}">${d[yKey]}</span>
-          </div>
-          <div class="d3-tooltip-row">
-            <span>Share of Total Grid:</span>
-            <span class="d3-tooltip-val" style="color: #fff">${d[xKey]}%</span>
-          </div>
-        `;
+        let htmlContent;
+        if (self.config.tooltipFormatter) {
+          htmlContent = self.config.tooltipFormatter(d, colorScale(d[yKey]));
+        } else {
+          htmlContent = `
+            <div class="d3-tooltip-title">U.S. Grid Electricity</div>
+            <div class="d3-tooltip-row">
+              <span>Generation Source:</span>
+              <span class="d3-tooltip-val" style="color: ${colorScale(d[yKey])}">${d[yKey]}</span>
+            </div>
+            <div class="d3-tooltip-row">
+              <span>Share of Total Grid:</span>
+              <span class="d3-tooltip-val" style="color: #fff">${d[xKey]}%</span>
+            </div>
+          `;
+        }
         tooltip.show(htmlContent, event);
       })
       .on('mousemove', function(event) {

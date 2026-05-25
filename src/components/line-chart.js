@@ -21,7 +21,7 @@ export class LineChart {
       groupKey: config.groupKey || 'series',
       xScaleType: config.xScaleType || 'linear', // 'linear' or 'time'
       yLabel: config.yLabel || 'Value',
-      margin: config.margin || { top: 30, right: 55, bottom: 40, left: 55 },
+      margin: config.margin || { top: 30, right: 65, bottom: 40, left: 55 },
       colors: config.colors || d3.schemeTableau10,
       isDualAxis: config.isDualAxis || false
     };
@@ -78,8 +78,11 @@ export class LineChart {
     this.colorScale = d3.scaleOrdinal(this.config.colors);
 
     // Watch resize events
-    const resizeObserver = new ResizeObserver(() => this.resize());
-    resizeObserver.observe(this.container);
+    if (this.container.__resizeObserver) {
+      this.container.__resizeObserver.disconnect();
+    }
+    this.container.__resizeObserver = new ResizeObserver(() => this.resize());
+    this.container.__resizeObserver.observe(this.container);
   }
 
   /**
@@ -179,7 +182,7 @@ export class LineChart {
       // Position Right Label
       this.yLabelRightText
         .attr('x', innerHeight / 2)
-        .attr('y', -width + 15)
+        .attr('y', -width + 10)
         .text('Cumulative Data Center Power (GW)')
         .style('opacity', 1);
 

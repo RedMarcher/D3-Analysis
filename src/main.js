@@ -19,10 +19,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let rawLayoffsData = null;
   let rawEnergyData = null;
 
-  // Dynamic Control Toggle & Tab States
+  // Dynamic Control Toggle & State
   let showFacilitiesOverlay = false;
-  let slide2ActiveTab = 'line'; // 'line' or 'scatter'
-  let slide3ActiveTab = 'bar';  // 'bar' or 'line'
 
   // Visual Components
   let metrics = null;
@@ -144,9 +142,6 @@ document.addEventListener('DOMContentLoaded', () => {
       slideData = slideDataRes;
       rawAtlasData = atlasRes;
 
-      // Instantiate core U.S. Map
-      usMap = new USMap('#container-us-map', geoJson);
-
       // Setup slideshow event listeners
       setupNavigationListeners();
 
@@ -257,68 +252,11 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('narrative-takeaway-title').textContent = slide.takeawayTitle;
     document.getElementById('narrative-takeaway-text').textContent = slide.takeawayText;
 
-    // --- 3. Dynamic Control Bindings Per Slide ---
-    // Clear dynamic control container boxes
-    d3.select('#us-map-controls').html('');
-    d3.select('#supporting-chart-controls').html('');
-    d3.select('#supporting-chart-mode-badge').style('display', 'block');
-
-    if (activeSlide === 0) {
-      // Slide 1: Show Facility Overlay Switch on the US Map
-      const mapControls = d3.select('#us-map-controls');
-      mapControls.html(`
-        <label class="toggle-control">
-          <input type="checkbox" id="chk-show-facilities" ${showFacilitiesOverlay ? 'checked' : ''}>
-          Overlay 1,480+ Real Facilities
-        </label>
-      `);
-      d3.select('#chk-show-facilities').on('change', function() {
-        showFacilitiesOverlay = this.checked;
-        updateUSMapMode();
-        updateKPIs();
-      });
-    } else if (activeSlide === 1) {
-      // Slide 2: Show Aggregate Line vs Major Layoffs Scatter Plot tabs
-      const chartControls = d3.select('#supporting-chart-controls');
-      chartControls.html(`
-        <button class="btn-control-tab ${slide2ActiveTab === 'line' ? 'active' : ''}" data-tab="line">Aggregate Trend</button>
-        <button class="btn-control-tab ${slide2ActiveTab === 'scatter' ? 'active' : ''}" data-tab="scatter">Major Layoffs (Scatter)</button>
-      `);
-      chartControls.selectAll('.btn-control-tab').on('click', function() {
-        const tab = d3.select(this).attr('data-tab');
-        if (slide2ActiveTab !== tab) {
-          slide2ActiveTab = tab;
-          chartControls.selectAll('.btn-control-tab').classed('active', false);
-          d3.select(this).classed('active', true);
-          updateSupportingChart();
-        }
-      });
-    } else if (activeSlide === 2) {
-      // Slide 3: Show Current Share Bar vs Historical Grid Line Plot tabs
-      const chartControls = d3.select('#supporting-chart-controls');
-      chartControls.html(`
-        <button class="btn-control-tab ${slide3ActiveTab === 'bar' ? 'active' : ''}" data-tab="bar">Current Share</button>
-        <button class="btn-control-tab ${slide3ActiveTab === 'line' ? 'active' : ''}" data-tab="line">US Grid History</button>
-      `);
-      chartControls.selectAll('.btn-control-tab').on('click', function() {
-        const tab = d3.select(this).attr('data-tab');
-        if (slide3ActiveTab !== tab) {
-          slide3ActiveTab = tab;
-          chartControls.selectAll('.btn-control-tab').classed('active', false);
-          d3.select(this).classed('active', true);
-          updateSupportingChart();
-        }
-      });
-    }
-
-    // --- 4. Update KPI Card Metrics ---
+    // --- 3. Update KPI Card Metrics ---
     updateKPIs();
 
-    // --- 5. Update U.S. Map Visualization Mode ---
-    updateUSMapMode();
-
-    // --- 6. Update Supporting Context D3 Chart ---
-    updateSupportingChart();
+    // --- 4. Render Slide Visualizations ---
+    renderVisualizations();
   }
 
   /**
@@ -401,150 +339,219 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /**
-   * Refreshes U.S. Map presentation metrics and facility coordinates.
+   * Cleans containers, adjusts layout grids, and renders correct Left and Right visualizations.
    */
-  function updateUSMapMode() {
-    const mapTitles = [
-      "U.S. Data Center Hubs & Planned Growth",
-      "Cumulative Tech Industry Layoffs (2019 - Present)",
-      "Data Center Draw Share of State Grid Capacity",
-      "Key Tech Hubs Under Assessment"
-    ];
-
-    document.getElementById('us-map-title').textContent = mapTitles[activeSlide];
+  function renderVisualizations() {
+    // 1. Reset grids and heights
+    const chartsGrid = document.querySelector('.charts-grid');
+    const containerLeftSelector = '#container-us-map';
+    const containerRightSelector = '#container-supporting-chart';
     
-    // Pass appropriate modes (Mode 1 for Slide 1, Mode 2 for Slide 2, Mode 3 for Slide 3/4)
-    const mapMode = activeSlide === 0 ? 1 : (activeSlide === 1 ? 2 : 3);
-    usMap.update(slideData.stateData, mapMode, rawAtlasData, showFacilitiesOverlay);
-  }
-
-  /**
-   * Swaps and completely builds the active Supporting visualization panel.
-   */
-  function updateSupportingChart() {
-    const chartTitles = [
-      "Nationwide Active vs Planned Capacity Share",
-      "Tech Layoffs Spike vs Cumulative Compute Growth",
-      "U.S. Electricity Production Energy Sources",
-      "Workforce Quality Breakdown & Wage Disparity"
-    ];
-
-    document.getElementById('supporting-chart-title').textContent = chartTitles[activeSlide];
-
-    // Clear previous charts & legends
-    const chartContainerSelector = '#container-supporting-chart';
+    // Reset heights
+    d3.select(containerLeftSelector).style('height', null).html('');
+    d3.select(containerRightSelector).style('height', null).html('');
+    
+    // Clear dynamic control container boxes
+    d3.select('#us-map-controls').html('');
+    d3.select('#supporting-chart-controls').html('');
+    
+    // Clear legends
     const legendContainer = document.getElementById('legend-supporting-chart');
     if (legendContainer) legendContainer.innerHTML = '';
-    
-    // Destroy previous chart reference
-    currentSupportingChart = null;
 
-    // Reset container height to standard CSS height for SVG charts
-    d3.select(chartContainerSelector).style('height', null);
+    // De-register previous chart references (for memory cleanliness)
+    currentSupportingChart = null;
+    usMap = null;
 
     if (activeSlide === 0) {
-      d3.select('#supporting-chart-mode-badge').text('D3 Donut');
-      // Donut Chart - Capacity Breakdown
-      currentSupportingChart = new DonutChart(chartContainerSelector, {
+      // --- SLIDE 1: US Map + Donut Chart ---
+      if (chartsGrid) chartsGrid.style.gridTemplateColumns = '1.2fr 0.8fr';
+      
+      // Left: Map
+      document.getElementById('us-map-title').textContent = "U.S. Data Center Hubs & Planned Growth";
+      d3.select('#us-map-mode-badge').text('Albers USA').style('display', 'block');
+      
+      // Restore facility overlay controls
+      const mapControls = d3.select('#us-map-controls');
+      mapControls.html(`
+        <label class="toggle-control">
+          <input type="checkbox" id="chk-show-facilities" ${showFacilitiesOverlay ? 'checked' : ''}>
+          Overlay 1,480+ Real Facilities
+        </label>
+      `);
+      
+      usMap = new USMap(containerLeftSelector, geoJson);
+      usMap.update(slideData.stateData, 1, rawAtlasData, showFacilitiesOverlay);
+
+      d3.select('#chk-show-facilities').on('change', function() {
+        showFacilitiesOverlay = this.checked;
+        if (usMap) {
+          usMap.update(slideData.stateData, 1, rawAtlasData, showFacilitiesOverlay);
+        }
+        updateKPIs();
+      });
+
+      // Right: Donut Chart
+      document.getElementById('supporting-chart-title').textContent = "Nationwide Active vs Planned Capacity Share";
+      d3.select('#supporting-chart-mode-badge').text('D3 Donut').style('display', 'block');
+      
+      currentSupportingChart = new DonutChart(containerRightSelector, {
         categoryKey: 'label',
         valueKey: 'value',
         innerRadiusRatio: 0.62,
         colors: ['var(--accent-primary)', 'var(--accent-secondary)']
       });
+      const totalActive = d3.sum(slideData.stateData, d => d.dataCenters);
+      const totalPlanned = d3.sum(slideData.stateData, d => d.plannedDataCenters);
       currentSupportingChart.update([
-        { label: 'Active Nationwide', value: 2850 },
-        { label: 'Planned Nationwide', value: 1120 }
+        { label: 'Active Nationwide', value: totalActive },
+        { label: 'Planned Nationwide', value: totalPlanned }
       ]);
+
     } else if (activeSlide === 1) {
-      // Slide 2: Tech layoffs vs Power GW
-      if (slide2ActiveTab === 'line') {
-        d3.select('#supporting-chart-mode-badge').text('D3 Dual-Axis Line');
-        currentSupportingChart = new LineChart(chartContainerSelector, {
-          xKey: 'date',
-          yKey: 'layoffs',
-          xScaleType: 'time',
-          isDualAxis: true
+      // --- SLIDE 2: Dual-Axis Line + Scatter Plot ---
+      if (chartsGrid) chartsGrid.style.gridTemplateColumns = '1fr 1fr';
+
+      // Left: Dual Axis Line Chart
+      document.getElementById('us-map-title').textContent = "Tech Layoffs Spike vs Cumulative Compute Growth";
+      d3.select('#us-map-mode-badge').text('D3 Dual-Axis Line').style('display', 'block');
+
+      const lineChart = new LineChart(containerLeftSelector, {
+        xKey: 'date',
+        yKey: 'layoffs',
+        xScaleType: 'time',
+        isDualAxis: true
+      });
+      lineChart.update(slideData.layoffTimeseries);
+
+      // Right: Scatter Plot (Asynchronous load)
+      document.getElementById('supporting-chart-title').textContent = "Tech Layoffs Corporate Spread";
+      d3.select('#supporting-chart-mode-badge').text('D3 Scatter Plot').style('display', 'block');
+
+      ensureLayoffsLoaded(() => {
+        // Double-check active slide hasn't changed during fetch delay
+        if (activeSlide !== 1) return;
+        
+        currentSupportingChart = new ScatterPlot(containerRightSelector, {
+          xKey: 'funds_raised',
+          yKey: 'total_laid_off',
+          sizeKey: 'percentage_laid_off_pct',
+          groupKey: 'industry',
+          labelKey: 'company',
+          xLabel: 'Total Funds Raised ($ Millions)',
+          yLabel: 'Total Employees Laid Off',
+          colors: d3.schemeTableau10
         });
-        currentSupportingChart.update(slideData.layoffTimeseries);
-      } else {
-        d3.select('#supporting-chart-mode-badge').text('D3 Scatter Plot');
-        ensureLayoffsLoaded(() => {
-          currentSupportingChart = new ScatterPlot(chartContainerSelector, {
-            xKey: 'funds_raised',
-            yKey: 'total_laid_off',
-            sizeKey: 'percentage_laid_off_pct',
-            groupKey: 'industry',
-            labelKey: 'company',
-            xLabel: 'Total Funds Raised ($ Millions)',
-            yLabel: 'Total Employees Laid Off',
-            colors: d3.schemeTableau10
-          });
-          
-          // Filter out smaller companies to present a beautiful, clear spread on the scatter plot
-          const formattedLayoffs = rawLayoffsData.map(d => ({
-            company: d.company,
-            industry: d.industry || 'Other',
-            total_laid_off: +d.total_laid_off,
-            funds_raised: +d.funds_raised,
-            percentage_laid_off_pct: (+d.percentage_laid_off || 0) * 100
-          })).filter(d => 
-            !isNaN(d.total_laid_off) && d.total_laid_off >= 400 && 
-            !isNaN(d.funds_raised) && d.funds_raised > 0 && 
-            !isNaN(d.percentage_laid_off_pct) && d.percentage_laid_off_pct > 0
-          );
-          currentSupportingChart.update(formattedLayoffs);
-        });
-      }
+        
+        const formattedLayoffs = rawLayoffsData.map(d => ({
+          company: d.company,
+          industry: d.industry || 'Other',
+          total_laid_off: +d.total_laid_off,
+          funds_raised: +d.funds_raised,
+          percentage_laid_off_pct: (+d.percentage_laid_off || 0) * 100
+        })).filter(d => 
+          !isNaN(d.total_laid_off) && d.total_laid_off >= 400 && 
+          !isNaN(d.funds_raised) && d.funds_raised > 0 && 
+          !isNaN(d.percentage_laid_off_pct) && d.percentage_laid_off_pct > 0
+        );
+        currentSupportingChart.update(formattedLayoffs);
+      });
+
     } else if (activeSlide === 2) {
-      // Slide 3: Energy draw share
-      if (slide3ActiveTab === 'bar') {
-        d3.select('#supporting-chart-mode-badge').text('D3 Horizontal Bar');
-        currentSupportingChart = new BarChart(chartContainerSelector, {
-          xKey: 'percentage',
-          yKey: 'source',
-          colors: ['#4facfe', '#6b7280', '#b100ff', '#05ffc8', '#ffb700', '#ff0844', '#f3f4f6']
+      // --- SLIDE 3: Horizontal Bar Chart + US Grid Multi-Line ---
+      if (chartsGrid) chartsGrid.style.gridTemplateColumns = '1fr 1fr';
+
+      // Left: Grid Sources Bar Chart
+      document.getElementById('us-map-title').textContent = "U.S. Electricity Production Energy Sources";
+      d3.select('#us-map-mode-badge').text('D3 Horizontal Bar').style('display', 'block');
+
+      const barChart = new BarChart(containerLeftSelector, {
+        xKey: 'percentage',
+        yKey: 'source',
+        colors: ['#4facfe', '#6b7280', '#b100ff', '#05ffc8', '#ffb700', '#ff0844', '#f3f4f6']
+      });
+      barChart.update(slideData.powerGridData.energySources);
+
+      // Right: Grid History Timeline (Asynchronous load)
+      document.getElementById('supporting-chart-title').textContent = "U.S. Grid History (2000 - Present)";
+      d3.select('#supporting-chart-mode-badge').text('D3 Multi-Line').style('display', 'block');
+
+      ensureEnergyLoaded(() => {
+        // Double-check active slide hasn't changed during fetch delay
+        if (activeSlide !== 2) return;
+
+        currentSupportingChart = new LineChart(containerRightSelector, {
+          xKey: 'date',
+          yKey: 'value',
+          groupKey: 'series',
+          xScaleType: 'time',
+          yLabel: 'Electricity Generation (TWh)',
+          colors: ['#6b7280', '#4facfe', '#b100ff', '#05ffc8', '#ffb700', '#ff0844']
         });
-        currentSupportingChart.update(slideData.powerGridData.energySources);
-      } else {
-        d3.select('#supporting-chart-mode-badge').text('D3 Multi-Line');
-        ensureEnergyLoaded(() => {
-          currentSupportingChart = new LineChart(chartContainerSelector, {
-            xKey: 'date',
-            yKey: 'value',
-            groupKey: 'series',
-            xScaleType: 'time',
-            yLabel: 'Electricity Generation (TWh)',
-            colors: ['#6b7280', '#4facfe', '#b100ff', '#05ffc8', '#ffb700', '#ff0844']
+
+        const energySourcesToTrack = ['Coal', 'Gas', 'Nuclear', 'Hydro', 'Solar', 'Wind'];
+        const structuredData = [];
+        
+        rawEnergyData.filter(d => d.Code === 'USA' && +d.Year >= 2000)
+          .forEach(row => {
+            const year = row.Year;
+            energySourcesToTrack.forEach(source => {
+              const val = +row[source];
+              if (!isNaN(val)) {
+                structuredData.push({
+                  date: `${year}-01-01`,
+                  value: val,
+                  series: source
+                });
+              }
+            });
           });
 
-          // Restructure USA rows from the global Electricity production CSV
-          const energySourcesToTrack = ['Coal', 'Gas', 'Nuclear', 'Hydro', 'Solar', 'Wind'];
-          const structuredData = [];
-          
-          rawEnergyData.filter(d => d.Code === 'USA' && +d.Year >= 2000)
-            .forEach(row => {
-              const year = row.Year;
-              energySourcesToTrack.forEach(source => {
-                const val = +row[source];
-                if (!isNaN(val)) {
-                  structuredData.push({
-                    date: `${year}-01-01`,
-                    value: val,
-                    series: source
-                  });
-                }
-              });
-            });
+        currentSupportingChart.update(structuredData);
+      });
 
-          currentSupportingChart.update(structuredData);
-        });
-      }
-    } else {
-      d3.select('#supporting-chart-mode-badge').text('D3 HTML Infographic');
-      // Set container height to auto for the HTML infographic to let it expand naturally
-      d3.select(chartContainerSelector).style('height', 'auto');
-      // Custom HTML Job Breakdown Infographic
-      currentSupportingChart = new JobChart(chartContainerSelector);
+    } else if (activeSlide === 3) {
+      // --- SLIDE 4: Wage Comparison Bar Chart + Job Composition Infographic ---
+      if (chartsGrid) chartsGrid.style.gridTemplateColumns = '1fr 1fr';
+
+      // Left: Wage Comparison Bar Chart
+      document.getElementById('us-map-title').textContent = "Data Center Tech vs. Broader Tech Industry Wages";
+      d3.select('#us-map-mode-badge').text('D3 Horizontal Bar').style('display', 'block');
+
+      const wageData = [
+        { role: "Software Engineer", wage: 145000 },
+        ...slideData.jobsBreakdown.map(d => ({
+          role: d.category,
+          wage: d.salary
+        }))
+      ];
+
+      const wageChart = new BarChart(containerLeftSelector, {
+        xKey: 'wage',
+        yKey: 'role',
+        margin: { top: 20, right: 30, bottom: 30, left: 130 },
+        colors: ['var(--accent-success)', 'var(--accent-primary)', 'var(--accent-warning)', 'var(--accent-danger)'],
+        xTickFormat: d => `$${d3.format(',.0f')(d)}`,
+        tooltipFormatter: (d, color) => `
+          <div class="d3-tooltip-title">Annual Wage Comparison</div>
+          <div class="d3-tooltip-row">
+            <span>Role:</span>
+            <span class="d3-tooltip-val" style="color: ${color}">${d.role}</span>
+          </div>
+          <div class="d3-tooltip-row">
+            <span>Average Salary:</span>
+            <span class="d3-tooltip-val" style="color: #fff">$${d.wage.toLocaleString()} / yr</span>
+          </div>
+        `
+      });
+      wageChart.update(wageData);
+
+      // Right: Job Infographic
+      document.getElementById('supporting-chart-title').textContent = "Workforce Composition & Demographics";
+      d3.select('#supporting-chart-mode-badge').text('D3 HTML Infographic').style('display', 'block');
+      
+      d3.select(containerRightSelector).style('height', 'auto');
+      currentSupportingChart = new JobChart(containerRightSelector);
       currentSupportingChart.update(slideData.jobsBreakdown);
     }
   }

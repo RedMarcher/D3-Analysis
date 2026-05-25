@@ -50,7 +50,7 @@ export class DonutChart {
 
     this.centerValue = this.centerTextGroup.append('text')
       .attr('text-anchor', 'middle')
-      .attr('dy', '-0.2em')
+      .attr('dy', '-0.5em')
       .attr('font-size', '1.75rem')
       .attr('font-weight', '700')
       .attr('fill', 'var(--text-primary)')
@@ -59,7 +59,7 @@ export class DonutChart {
 
     this.centerLabel = this.centerTextGroup.append('text')
       .attr('text-anchor', 'middle')
-      .attr('dy', '1.2em')
+      .attr('dy', '1.1em')
       .attr('font-size', '0.75rem')
       .attr('font-weight', '600')
       .attr('text-transform', 'uppercase')
@@ -71,8 +71,11 @@ export class DonutChart {
     this.colorScale = d3.scaleOrdinal(this.config.colors);
 
     // Resize observer
-    const resizeObserver = new ResizeObserver(() => this.resize());
-    resizeObserver.observe(this.container);
+    if (this.container.__resizeObserver) {
+      this.container.__resizeObserver.disconnect();
+    }
+    this.container.__resizeObserver = new ResizeObserver(() => this.resize());
+    this.container.__resizeObserver.observe(this.container);
   }
 
   /**

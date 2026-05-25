@@ -45,8 +45,11 @@ export class USMap {
     this.bubblesLayer = this.g.append('g').attr('class', 'bubbles-layer');
 
     // Resize observer for fully fluid layouts
-    const resizeObserver = new ResizeObserver(() => this.resize());
-    resizeObserver.observe(this.container);
+    if (this.container.__resizeObserver) {
+      this.container.__resizeObserver.disconnect();
+    }
+    this.container.__resizeObserver = new ResizeObserver(() => this.resize());
+    this.container.__resizeObserver.observe(this.container);
   }
 
   /**
@@ -89,8 +92,7 @@ export class USMap {
 
     // D3 Albers USA Projection fits perfectly in our bounding box
     const projection = d3.geoAlbersUsa()
-      .translate([width / 2, height / 2])
-      .scale(Math.min(width * 1.15, height * 1.5) || 500);
+      .fitSize([width, height], this.geoJson);
 
     const pathGenerator = d3.geoPath().projection(projection);
 

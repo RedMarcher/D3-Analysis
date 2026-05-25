@@ -190,7 +190,7 @@
 /* D3 US Map Custom Styles */
 .us-state-path {
   fill: rgba(15, 17, 26, 0.7);
-  stroke: rgba(255, 255, 255, 0.08);
+  stroke: rgba(255, 255, 255, 0.2);
   stroke-width: 1px;
   transition: fill var(--transition-normal), stroke var(--transition-normal);
   cursor: pointer;

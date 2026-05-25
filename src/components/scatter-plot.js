@@ -22,7 +22,7 @@ export class ScatterPlot {
       labelKey: config.labelKey || 'label',
       xLabel: config.xLabel || 'X Dimension',
       yLabel: config.yLabel || 'Y Dimension',
-      margin: config.margin || { top: 30, right: 30, bottom: 40, left: 55 },
+      margin: config.margin || { top: 30, right: 30, bottom: 50, left: 55 },
       colors: config.colors || d3.schemeSet2
     };
 
@@ -88,8 +88,11 @@ export class ScatterPlot {
     this.colorScale = d3.scaleOrdinal(this.config.colors);
 
     // Watch resize events
-    const resizeObserver = new ResizeObserver(() => this.resize());
-    resizeObserver.observe(this.container);
+    if (this.container.__resizeObserver) {
+      this.container.__resizeObserver.disconnect();
+    }
+    this.container.__resizeObserver = new ResizeObserver(() => this.resize());
+    this.container.__resizeObserver.observe(this.container);
   }
 
   /**
@@ -147,7 +150,7 @@ export class ScatterPlot {
     // Place labels
     this.xLabelText
       .attr('x', innerWidth / 2 + margin.left)
-      .attr('y', height - 8)
+      .attr('y', height - 5)
       .text(xLabel);
 
     this.yLabelText

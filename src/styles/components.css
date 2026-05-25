@@ -548,3 +548,78 @@
   animation-duration: 0.3s;
   animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+/* Dynamic Interactive Controls & Tabs (Glassmorphic Dark Styling) */
+.map-controls-group, .chart-controls-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.toggle-control {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.725rem;
+  font-family: var(--font-family-title);
+  color: var(--text-secondary);
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-color);
+  padding: 0.3rem 0.6rem;
+  border-radius: var(--border-radius-sm);
+  transition: border-color var(--transition-fast), background var(--transition-fast), color var(--transition-fast);
+  user-select: none;
+}
+
+.toggle-control:hover {
+  border-color: var(--accent-primary);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+}
+
+.toggle-control input {
+  accent-color: var(--accent-primary);
+  cursor: pointer;
+  margin: 0;
+  width: 13px;
+  height: 13px;
+}
+
+.btn-control-tab {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  padding: 0.25rem 0.6rem;
+  font-size: 0.725rem;
+  border-radius: 4px;
+  font-family: var(--font-family-title);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  outline: none;
+}
+
+.btn-control-tab:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  color: var(--text-primary);
+}
+
+.btn-control-tab.active {
+  background: linear-gradient(135deg, rgba(0, 242, 254, 0.12) 0%, rgba(79, 172, 254, 0.12) 100%);
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+  box-shadow: 0 0 12px rgba(0, 242, 254, 0.1);
+}
+
+.facility-dot {
+  stroke-width: 0.2px;
+  stroke: #ffffff;
+  cursor: pointer;
+  transition: r var(--transition-fast), fill var(--transition-fast);
+}
+
+.facility-dot:hover {
+  stroke-width: 1px;
+}
+

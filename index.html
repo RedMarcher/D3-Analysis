@@ -93,9 +93,12 @@
               <div class="skeleton-spinner"></div>
               <span class="control-label">Projecting Geographic Data...</span>
             </div>
-            <div class="glass-card-title">
-              <span id="us-map-title">U.S. Data Center Regional Concentration</span>
-              <span id="us-map-mode-badge" style="font-size: 0.8125rem; font-weight: 700; color: var(--accent-primary); font-family: var(--font-family-title);">Albers USA</span>
+            <div class="glass-card-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+              <div style="display: flex; flex-direction: column;">
+                <span id="us-map-title">U.S. Data Center Regional Concentration</span>
+                <span id="us-map-mode-badge" style="font-size: 0.8125rem; font-weight: 700; color: var(--accent-primary); font-family: var(--font-family-title);">Albers USA</span>
+              </div>
+              <div id="us-map-controls" class="map-controls-group"></div>
             </div>
             <!-- Bounding container for the D3 US Map -->
             <div class="chart-container-wrapper" id="container-us-map" style="flex-grow: 1; height: 380px;"></div>
@@ -107,9 +110,12 @@
               <div class="skeleton-spinner"></div>
               <span class="control-label">Synthesizing Connotation Visuals...</span>
             </div>
-            <div class="glass-card-title">
-              <span id="supporting-chart-title">Visual Context Breakdown</span>
-              <span style="font-size: 0.8125rem; font-weight: 700; color: var(--accent-secondary); font-family: var(--font-family-title);">D3 Chart</span>
+            <div class="glass-card-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+              <div style="display: flex; flex-direction: column;">
+                <span id="supporting-chart-title">Visual Context Breakdown</span>
+                <span id="supporting-chart-mode-badge" style="font-size: 0.8125rem; font-weight: 700; color: var(--accent-secondary); font-family: var(--font-family-title);">D3 Chart</span>
+              </div>
+              <div id="supporting-chart-controls" class="chart-controls-group"></div>
             </div>
             <!-- Bounding container for supporting D3 charts -->
             <div class="chart-container-wrapper" id="container-supporting-chart" style="flex-grow: 1; height: 380px;"></div>

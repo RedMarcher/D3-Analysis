@@ -54,10 +54,20 @@ export class USMap {
    * @param {Array} rawStateData - State stats array
    * @param {number} mode - Active slide mode (1, 2, or 3)
    */
-  update(rawStateData, mode = 1) {
+  /**
+   * Updates state data and active projection variables.
+   * @param {Array} rawStateData - State stats array
+   * @param {number} mode - Active slide mode (1, 2, or 3)
+   * @param {Array} facilitiesData - Individual facility CSV dataset
+   * @param {boolean} showFacilities - Whether to overlay physical facility coordinates
+   */
+  update(rawStateData, mode = 1, facilitiesData = null, showFacilities = false) {
     if (!rawStateData) return;
     
     this.mode = mode;
+    this.facilitiesData = facilitiesData;
+    this.showFacilities = showFacilities;
+
     this.dataMap.clear();
     rawStateData.forEach(d => {
       this.dataMap.set(d.id, d);
@@ -185,49 +195,131 @@ export class USMap {
 
     // Render planned overlay bubbles for Slide 1 (Growth & Concentration)
     this.bubblesLayer.selectAll('.planned-bubble-group').remove();
+    this.bubblesLayer.selectAll('.facility-dot').remove();
 
     if (this.mode === 1) {
-      const bubbleData = Array.from(this.dataMap.values())
-        .filter(d => d.plannedDataCenters > 0);
+      if (this.showFacilities && this.facilitiesData) {
+        // Render physical coordinate overlay dots
+        const projectedFacilities = this.facilitiesData.map(d => {
+          const coords = projection([+d.lon, +d.lat]);
+          return { ...d, _coords: coords };
+        }).filter(d => d._coords !== null && !isNaN(d._coords[0]) && !isNaN(d._coords[1]));
 
-      // Scale bubble radius proportional to planned count
-      const radiusScale = d3.scaleSqrt()
-        .domain([0, d3.max(bubbleData, d => d.plannedDataCenters) || 10])
-        .range([0, 16]);
+        const dots = this.bubblesLayer.selectAll('.facility-dot')
+          .data(projectedFacilities, d => d.id);
 
-      const bubbleGroups = this.bubblesLayer.selectAll('.planned-bubble-group')
-        .data(bubbleData, d => d.id);
+        const dotsEnter = dots.enter().append('circle')
+          .attr('class', 'facility-dot')
+          .attr('cx', d => d._coords[0])
+          .attr('cy', d => d._coords[1])
+          .attr('r', 0)
+          .style('fill', 'var(--accent-primary)')
+          .style('fill-opacity', 0.65);
 
-      const bubbleGroupsEnter = bubbleGroups.enter().append('g')
-        .attr('class', 'planned-bubble-group')
-        .attr('transform', d => {
-          // Find matching state feature to project coordinates in center of state boundary
-          const feature = self.geoJson.features.find(f => f.id === d.id);
-          if (feature) {
-            const centroid = pathGenerator.centroid(feature);
-            if (centroid && !isNaN(centroid[0]) && !isNaN(centroid[1])) {
-              return `translate(${centroid[0]}, ${centroid[1]})`;
+        const dotsMerge = dotsEnter.merge(dots);
+
+        dotsMerge
+          .transition().duration(500)
+          .attr('cx', d => d._coords[0])
+          .attr('cy', d => d._coords[1])
+          .attr('r', d => {
+            const sqft = +d.sqft;
+            return sqft > 0 ? Math.min(6, Math.max(1.8, Math.sqrt(sqft) / 750)) : 1.8;
+          })
+          .style('fill', 'var(--accent-primary)')
+          .style('fill-opacity', 0.7);
+
+        dotsMerge
+          .on('mouseover', function(event, d) {
+            d3.select(this)
+              .transition().duration(150)
+              .style('fill', 'var(--accent-secondary)')
+              .style('fill-opacity', 1)
+              .attr('r', d => {
+                const sqft = +d.sqft;
+                const r = sqft > 0 ? Math.min(6, Math.max(1.8, Math.sqrt(sqft) / 750)) : 1.8;
+                return r + 3.5;
+              });
+
+            const name = d.name || 'U.S. Data Center';
+            const operator = d.operator || 'Independent / Other';
+            const sizeStr = +d.sqft > 0 ? `${formatValue(+d.sqft)} sqft` : 'Unknown size';
+
+            const htmlContent = `
+              <div class="d3-tooltip-title">${name}</div>
+              <div class="d3-tooltip-row">
+                <span>Operator:</span>
+                <span class="d3-tooltip-val" style="color: var(--accent-primary)">${operator}</span>
+              </div>
+              <div class="d3-tooltip-row">
+                <span>Location:</span>
+                <span class="d3-tooltip-val" style="color: #fff">${d.county}, ${d.state}</span>
+              </div>
+              <div class="d3-tooltip-row">
+                <span>Building Size:</span>
+                <span class="d3-tooltip-val" style="color: var(--accent-secondary)">${sizeStr}</span>
+              </div>
+            `;
+            tooltip.show(htmlContent, event);
+          })
+          .on('mousemove', function(event) {
+            tooltip.move(event);
+          })
+          .on('mouseout', function() {
+            const originalRadius = d3.select(this).datum().sqft > 0 
+              ? Math.min(6, Math.max(1.8, Math.sqrt(+d3.select(this).datum().sqft) / 750)) 
+              : 1.8;
+
+            d3.select(this)
+              .transition().duration(150)
+              .style('fill', 'var(--accent-primary)')
+              .style('fill-opacity', 0.7)
+              .attr('r', originalRadius);
+
+            tooltip.hide();
+          });
+
+        dots.exit().remove();
+      } else {
+        // Draw state-level aggregate planned bubbles
+        const bubbleData = Array.from(this.dataMap.values())
+          .filter(d => d.plannedDataCenters > 0);
+
+        const radiusScale = d3.scaleSqrt()
+          .domain([0, d3.max(bubbleData, d => d.plannedDataCenters) || 10])
+          .range([0, 16]);
+
+        const bubbleGroups = this.bubblesLayer.selectAll('.planned-bubble-group')
+          .data(bubbleData, d => d.id);
+
+        const bubbleGroupsEnter = bubbleGroups.enter().append('g')
+          .attr('class', 'planned-bubble-group')
+          .attr('transform', d => {
+            const feature = self.geoJson.features.find(f => f.id === d.id);
+            if (feature) {
+              const centroid = pathGenerator.centroid(feature);
+              if (centroid && !isNaN(centroid[0]) && !isNaN(centroid[1])) {
+                return `translate(${centroid[0]}, ${centroid[1]})`;
+              }
             }
-          }
-          return null;
-        });
+            return null;
+          });
 
-      // Overlay pulsing outer bubble ring
-      bubbleGroupsEnter.append('circle')
-        .attr('class', 'us-map-bubble us-map-bubble-pulse')
-        .attr('r', d => radiusScale(d.plannedDataCenters))
-        .style('fill', 'none')
-        .style('stroke', 'var(--accent-secondary)')
-        .style('stroke-width', '1.5px');
+        bubbleGroupsEnter.append('circle')
+          .attr('class', 'us-map-bubble us-map-bubble-pulse')
+          .attr('r', d => radiusScale(d.plannedDataCenters))
+          .style('fill', 'none')
+          .style('stroke', 'var(--accent-secondary)')
+          .style('stroke-width', '1.5px');
 
-      // Static inner bubble
-      bubbleGroupsEnter.append('circle')
-        .attr('class', 'us-map-bubble')
-        .attr('r', d => Math.max(3, radiusScale(d.plannedDataCenters) * 0.45))
-        .style('fill', 'var(--accent-secondary)')
-        .style('fill-opacity', 0.8)
-        .style('stroke', '#fff')
-        .style('stroke-width', '0.5px');
+        bubbleGroupsEnter.append('circle')
+          .attr('class', 'us-map-bubble')
+          .attr('r', d => Math.max(3, radiusScale(d.plannedDataCenters) * 0.45))
+          .style('fill', 'var(--accent-secondary)')
+          .style('fill-opacity', 0.8)
+          .style('stroke', '#fff')
+          .style('stroke-width', '0.5px');
+      }
     }
   }
 

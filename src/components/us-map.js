@@ -29,6 +29,9 @@ export class USMap {
     this.selectedStateId = null;
     this.currentTransform = d3.zoomIdentity;
     this.zoom = null;
+    this._animated  = false;
+    this._lastWidth  = 0;
+    this._lastHeight = 0;
 
     this._init();
   }
@@ -71,6 +74,7 @@ export class USMap {
 
   update(rawStateData, mode = 1, facilitiesData = null, showFacilities = false) {
     if (!rawStateData) return;
+    this._animated = false;
     this.mode = mode;
     this.facilitiesData = facilitiesData;
     this.showFacilities = showFacilities;
@@ -84,6 +88,11 @@ export class USMap {
     const { width, height } = getDimensions(this.container, margin);
     const self = this;
 
+    this._lastWidth  = width;
+    this._lastHeight = height;
+    const isFirstDraw = !this._animated;
+    this._animated = true;
+
     this.svg.attr('width', width).attr('height', height);
 
     const projection = d3.geoAlbersUsa().fitSize([width, height], this.geoJson);
@@ -95,7 +104,8 @@ export class USMap {
 
     const statesEnter = states.enter().append('path')
       .attr('class', 'us-state-path')
-      .style('cursor', 'pointer');
+      .style('cursor', 'pointer')
+      .style('opacity', isFirstDraw ? 0 : 1);
 
     const statesMerge = statesEnter.merge(states);
 
@@ -105,6 +115,23 @@ export class USMap {
       .style('stroke',       d => d.id === self.selectedStateId ? SELECTED_STROKE : STATE_STROKE)
       .style('stroke-width', d => d.id === self.selectedStateId ? '1.5px'         : '1px')
       .classed('us-state-selected-pulse', d => d.id === self.selectedStateId);
+
+    if (isFirstDraw) {
+      statesMerge.each(function(d) {
+        const c = pathGen.centroid(d);
+        if (!c || isNaN(c[0])) return;
+        const [cx, cy] = c;
+        const xNorm = cx / width;
+        const delay = xNorm * 480 + Math.random() * 100;
+        // Start scaled to 10% around centroid
+        d3.select(this)
+          .attr('transform', `translate(${cx},${cy}) scale(0.1) translate(${-cx},${-cy})`);
+        d3.select(this).transition().delay(delay).duration(450).ease(d3.easeCubicOut)
+          .style('opacity', 1)
+          .attr('transform', `translate(${cx},${cy}) scale(1) translate(${-cx},${-cy})`)
+          .on('end', function() { d3.select(this).attr('transform', null); });
+      });
+    }
 
     statesMerge
       .on('mouseover', function(event, d) {
@@ -160,9 +187,9 @@ export class USMap {
 
     if (this.mode === 1) {
       if (this.showFacilities && this.facilitiesData) {
-        this._drawFacilityDots(projection);
+        this._drawFacilityDots(projection, isFirstDraw, width);
       } else {
-        this._drawBubbles(pathGen);
+        this._drawBubbles(pathGen, isFirstDraw, width);
       }
     }
 
@@ -170,7 +197,7 @@ export class USMap {
     this.g.attr('transform', this.currentTransform);
   }
 
-  _drawBubbles(pathGen) {
+  _drawBubbles(pathGen, isFirstDraw, mapWidth) {
     const self = this;
     const bubbleData = Array.from(this.dataMap.values())
       .filter(d => (d.active || 0) + (d.planned || 0) > 0);
@@ -179,8 +206,7 @@ export class USMap {
     const maxTotal    = d3.max(bubbleData, d => d.active + d.planned) || 10;
     const radiusScale = d3.scaleSqrt().domain([0, maxTotal]).range([0, 22]);
 
-    // Ring width scales with planned count relative to active
-    const maxPlanned   = d3.max(bubbleData, d => d.planned) || 10;
+    const maxPlanned     = d3.max(bubbleData, d => d.planned) || 10;
     const ringWidthScale = d3.scaleSqrt().domain([0, maxPlanned]).range([0, 7]);
 
     const t = this.currentTransform;
@@ -204,7 +230,7 @@ export class USMap {
       .attr('class', 'us-map-bubble us-map-bubble-pulse')
       .each(function(d) {
         const baseR = Math.max(4, radiusScale(d.active + d.planned));
-        d3.select(this).attr('data-base-r', baseR).attr('r', baseR);
+        d3.select(this).attr('data-base-r', baseR).attr('r', isFirstDraw ? 0 : baseR);
       });
 
     // Outer circle — total footprint (active + planned), accent-secondary
@@ -214,7 +240,7 @@ export class USMap {
       .style('stroke', 'var(--accent-secondary)').style('stroke-width', '1.5px')
       .each(function(d) {
         const baseR = Math.max(4, radiusScale(d.active + d.planned));
-        d3.select(this).attr('data-base-r', baseR).attr('r', baseR);
+        d3.select(this).attr('data-base-r', baseR).attr('r', isFirstDraw ? 0 : baseR);
       });
 
     // Inner circle — active only, accent-primary
@@ -226,11 +252,23 @@ export class USMap {
         const outerBase = Math.max(4, radiusScale(d.active + d.planned));
         const ringW     = ringWidthScale(d.planned);
         const baseR     = Math.max(2, outerBase - ringW);
-        d3.select(this).attr('data-base-r', baseR).attr('r', baseR);
+        d3.select(this).attr('data-base-r', baseR).attr('r', isFirstDraw ? 0 : baseR);
       });
+
+    // Staggered entrance: grow each state's circles after state fade-in
+    if (isFirstDraw) {
+      groups.each(function(d) {
+        if (!d._centroid) return;
+        const xNorm = d._centroid[0] / (mapWidth || 1);
+        const delay = 380 + xNorm * 480 + Math.random() * 120;
+        d3.select(this).selectAll('circle')
+          .transition().delay(delay).duration(400).ease(d3.easeCubicOut)
+          .attr('r', function() { return +d3.select(this).attr('data-base-r'); });
+      });
+    }
   }
 
-  _drawFacilityDots(projection) {
+  _drawFacilityDots(projection, isFirstDraw, mapWidth) {
     const self = this;
     const t = this.currentTransform;
 
@@ -238,6 +276,9 @@ export class USMap {
       const coords = projection([+d.lon, +d.lat]);
       return { ...d, _mapCoords: coords };
     }).filter(d => d._mapCoords && !isNaN(d._mapCoords[0]));
+
+    const xMin  = d3.min(projected, d => d._mapCoords[0]);
+    const xSpan = (d3.max(projected, d => d._mapCoords[0]) - xMin) || 1;
 
     const DOT_R = 3;
 
@@ -247,7 +288,7 @@ export class USMap {
       .attr('class', 'facility-dot')
       .attr('cx', d => t.applyX(d._mapCoords[0]))
       .attr('cy', d => t.applyY(d._mapCoords[1]))
-      .attr('r', DOT_R)
+      .attr('r', isFirstDraw ? 0 : DOT_R)
       .style('fill', 'var(--accent-primary)')
       .style('fill-opacity', 0.7)
       .style('cursor', 'pointer')
@@ -268,6 +309,16 @@ export class USMap {
           .style('fill-opacity', 0.7);
         tooltip.hide();
       });
+
+    if (isFirstDraw) {
+      this.overlayLayer.selectAll('.facility-dot')
+        .each(function(d) {
+          const xNorm = (d._mapCoords[0] - xMin) / xSpan;
+          const delay = 350 + xNorm * 500 + Math.random() * 120;
+          d3.select(this).transition().delay(delay).duration(350).ease(d3.easeCubicOut)
+            .attr('r', DOT_R);
+        });
+    }
   }
 
   _repositionFacilityDots(transform) {
@@ -322,6 +373,9 @@ export class USMap {
   }
 
   resize() {
+    const { margin } = this.config;
+    const { width, height } = getDimensions(this.container, margin);
+    if (width === this._lastWidth && height === this._lastHeight) return;
     this.draw();
   }
 }

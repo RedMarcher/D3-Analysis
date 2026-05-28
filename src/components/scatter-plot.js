@@ -31,6 +31,9 @@ export class ScatterPlot {
     this.zoom         = null;
     this._innerWidth  = 0;
     this._innerHeight = 0;
+    this._lastWidth   = 0;
+    this._lastHeight  = 0;
+    this._animated    = false;
     this.activeGroups = new Set();
 
     this.init();
@@ -102,6 +105,7 @@ export class ScatterPlot {
   update(rawData) {
     if (!rawData || rawData.length === 0) return;
     this.data = rawData;
+    this._animated = false;
     const presentGroups = new Set(rawData.map(d => d[this.config.groupKey]));
     const uniqueGroups = this.config.groupOrder
       ? this.config.groupOrder.filter(g => presentGroups.has(g))
@@ -124,6 +128,8 @@ export class ScatterPlot {
 
     this._innerWidth  = innerWidth;
     this._innerHeight = innerHeight;
+    this._lastWidth   = width;
+    this._lastHeight  = height;
 
     this.svg.attr('width', width).attr('height', height);
 
@@ -142,7 +148,7 @@ export class ScatterPlot {
 
     this.sizeScale = d3.scaleSqrt()
       .domain(d3.extent(this.data, d => +d[sizeKey]))
-      .range([5, innerWidth > 500 ? 25 : 12]);
+      .range([3, innerWidth > 500 ? 36 : 18]);
 
     this.zoom
       .translateExtent([[0, 0], [innerWidth, innerHeight]])
@@ -218,6 +224,13 @@ export class ScatterPlot {
     const bubbles = this.bubblesContainer.selectAll('.chart-node')
       .data(this.data, d => d[labelKey] + String(d[xKey]));
 
+    const isFirstDraw = !this._animated;
+    this._animated = true;
+
+    // Precompute x-based stagger range for entrance animation
+    const xMin  = +d3.min(this.data, d => d[xKey]);
+    const xSpan = +d3.max(this.data, d => d[xKey]) - xMin || 1;
+
     const bubblesEnter = bubbles.enter().append('circle')
       .attr('class', 'chart-node')
       .attr('cx', d => xScale(xVal(d)))
@@ -226,15 +239,28 @@ export class ScatterPlot {
       .style('fill', d => this.colorScale(d[groupKey]))
       .style('stroke', '#ffffff')
       .style('stroke-width', '1px')
-      .style('fill-opacity', 0.65);
+      .style('fill-opacity', 0);
 
     const bubblesMerge = bubblesEnter.merge(bubbles);
 
-    bubblesMerge.transition().duration(500)
-      .attr('cx', d => xScale(xVal(d)))
-      .attr('cy', d => yScale(+d[yKey]))
-      .attr('r',  d => this.sizeScale(+d[sizeKey]))
-      .style('fill', d => this.colorScale(d[groupKey]));
+    if (isFirstDraw) {
+      // Stagger by x position (left → right) + small random jitter
+      bubblesMerge.each(function(d) {
+        const base  = ((+d[xKey] - xMin) / xSpan) * 650;
+        const jitter = Math.random() * 160;
+        d3.select(this)
+          .transition().delay(base + jitter).duration(480).ease(d3.easeCubicOut)
+          .attr('r', self.sizeScale(+d[sizeKey]))
+          .style('fill-opacity', 0.65);
+      });
+    } else {
+      bubblesMerge.transition().duration(500)
+        .attr('cx', d => xScale(xVal(d)))
+        .attr('cy', d => yScale(+d[yKey]))
+        .attr('r',  d => self.sizeScale(+d[sizeKey]))
+        .style('fill', d => self.colorScale(d[groupKey]))
+        .style('fill-opacity', 0.65);
+    }
 
     bubbles.exit().transition().duration(300).attr('r', 0).remove();
 
@@ -275,7 +301,7 @@ export class ScatterPlot {
           </div>
           <div class="d3-tooltip-row">
             <span>Funds raised:</span>
-            <span class="d3-tooltip-val">$${formatValue(+d[sizeKey])}M</span>
+            <span class="d3-tooltip-val">${(() => { const m = +d[sizeKey]; return m >= 1000 ? `$${(m/1000).toFixed(1)}B` : `$${Math.round(m)}M`; })()}</span>
           </div>
         `;
         tooltip.show(htmlContent, event);
@@ -316,6 +342,62 @@ export class ScatterPlot {
     });
 
     this._updateLegendState();
+
+    if (!this.sizeScale) return;
+
+    // Size legend
+    const sizeSamples = [
+      { value: 100,   label: '$100M' },
+      { value: 2000,  label: '$2B'   },
+      { value: 30000, label: '$30B'  },
+    ];
+    const maxR    = this.sizeScale(sizeSamples[sizeSamples.length - 1].value);
+    const svgH    = maxR * 2 + 8;
+    const padding = 10;
+
+    let xCursor = padding;
+    const positions = sizeSamples.map(s => {
+      const r = this.sizeScale(s.value);
+      const cx = xCursor + r;
+      xCursor = cx + r + padding + 30;
+      return { ...s, r, cx };
+    });
+    const svgW = xCursor;
+
+    const divider = document.createElement('div');
+    divider.className = 'legend-size-divider';
+    divider.textContent = 'Bubble size: Funds Raised';
+    legendContainer.appendChild(divider);
+
+    const svgNS = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(svgNS, 'svg');
+    svg.setAttribute('width', svgW);
+    svg.setAttribute('height', svgH);
+    svg.style.display = 'block';
+    svg.style.overflow = 'visible';
+
+    positions.forEach(({ r, cx, label }) => {
+      const cy = svgH / 2;
+
+      const circle = document.createElementNS(svgNS, 'circle');
+      circle.setAttribute('cx', cx);
+      circle.setAttribute('cy', cy);
+      circle.setAttribute('r', r);
+      circle.setAttribute('fill', 'rgba(255,255,255,0.12)');
+      circle.setAttribute('stroke', 'rgba(255,255,255,0.4)');
+      circle.setAttribute('stroke-width', '1');
+      svg.appendChild(circle);
+
+      const text = document.createElementNS(svgNS, 'text');
+      text.setAttribute('x', cx + r + 4);
+      text.setAttribute('y', cy + 4);
+      text.setAttribute('fill', 'var(--text-secondary)');
+      text.setAttribute('font-size', '10');
+      text.textContent = label;
+      svg.appendChild(text);
+    });
+
+    legendContainer.appendChild(svg);
   }
 
   _toggleGroup(key) {
@@ -358,6 +440,9 @@ export class ScatterPlot {
   }
 
   resize() {
-    if (this.data) this.draw();
+    if (!this.data) return;
+    const { width, height } = getDimensions(this.container, this.config.margin);
+    if (width === this._lastWidth && height === this._lastHeight) return;
+    this.draw();
   }
 }

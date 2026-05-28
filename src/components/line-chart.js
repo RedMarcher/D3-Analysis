@@ -30,6 +30,9 @@ export class LineChart {
     this.g = null;
     this.data = null;
     this.colorScale = null;
+    this._animated = false;
+    this._lastWidth = 0;
+    this._lastHeight = 0;
 
     this.init();
   }
@@ -129,6 +132,8 @@ export class LineChart {
     // Get current dimensions
     const { margin, xScaleType, yLabel, isDualAxis } = this.config;
     const { width, height, innerWidth, innerHeight } = getDimensions(this.container, margin);
+    this._lastWidth  = width;
+    this._lastHeight = height;
 
     // Update main container elements
     this.svg
@@ -142,11 +147,14 @@ export class LineChart {
 
     xScale.domain(d3.extent(parsedData, d => d._x));
 
-    // Position X Axis
+    // Position X Axis — quarterly ticks, year labels only at Jan 1
     this.xAxisGroup
       .attr('transform', `translate(0, ${innerHeight})`)
       .transition().duration(500)
-      .call(d3.axisBottom(xScale).ticks(innerWidth > 500 ? 8 : 4).tickFormat(d3.timeFormat('%Y')));
+      .call(d3.axisBottom(xScale)
+        .ticks(d3.timeMonth.every(3))
+        .tickFormat(d => d.getMonth() === 0 ? d3.timeFormat('%Y')(d) : '')
+        .tickSizeOuter(0));
 
     // Clear nodes
     this.linesContainer.selectAll('*').remove();
@@ -220,50 +228,78 @@ export class LineChart {
         .y1(d => yScaleRight(+d.datacenterPower))
         .curve(d3.curveMonotoneX);
 
+      const enterDuration = this._animated ? 0 : 1100;
+      const enterDelay    = this._animated ? 0 : 180;
+      const enterEase     = d3.easeCubicOut;
+
+      // Flat generators — all y at baseline, used as animation start state
+      const flatLineLayoffs = d3.line()
+        .x(d => xScale(d._x)).y(innerHeight).curve(d3.curveMonotoneX);
+      const flatAreaLayoffs = d3.area()
+        .x(d => xScale(d._x)).y0(innerHeight).y1(innerHeight).curve(d3.curveMonotoneX);
+      const flatLinePower = d3.line()
+        .x(d => xScale(d._x)).y(innerHeight).curve(d3.curveMonotoneX);
+      const flatAreaPower = d3.area()
+        .x(d => xScale(d._x)).y0(innerHeight).y1(innerHeight).curve(d3.curveMonotoneX);
+
       // Draw Curve 1: Tech Layoffs (Coral red)
       const layoffsGroup = this.linesContainer.append('g').attr('class', 'line-group');
       layoffsGroup.append('path')
         .attr('class', 'chart-area')
-        .attr('d', areaLayoffs(parsedData))
+        .attr('d', flatAreaLayoffs(parsedData))
         .style('fill', 'var(--accent-danger)')
-        .style('opacity', 0.12);
+        .style('opacity', 0.12)
+        .transition().duration(enterDuration).ease(enterEase)
+        .attr('d', areaLayoffs(parsedData));
       layoffsGroup.append('path')
         .attr('class', 'chart-path')
-        .attr('d', lineLayoffs(parsedData))
-        .style('stroke', 'var(--accent-danger)');
+        .attr('d', flatLineLayoffs(parsedData))
+        .style('stroke', 'var(--accent-danger)')
+        .transition().duration(enterDuration).ease(enterEase)
+        .attr('d', lineLayoffs(parsedData));
 
-      // Draw Curve 2: Data Center Power GW (Cyber blue)
+      // Draw Curve 2: Data Center Power GW (Cyber blue) — delayed slightly
       const powerGroup = this.linesContainer.append('g').attr('class', 'line-group');
       powerGroup.append('path')
         .attr('class', 'chart-area')
-        .attr('d', areaPower(parsedData))
+        .attr('d', flatAreaPower(parsedData))
         .style('fill', 'var(--accent-primary)')
-        .style('opacity', 0.12);
+        .style('opacity', 0.12)
+        .transition().delay(enterDelay).duration(enterDuration).ease(enterEase)
+        .attr('d', areaPower(parsedData));
       powerGroup.append('path')
         .attr('class', 'chart-path')
-        .attr('d', linePower(parsedData))
-        .style('stroke', 'var(--accent-primary)');
+        .attr('d', flatLinePower(parsedData))
+        .style('stroke', 'var(--accent-primary)')
+        .transition().delay(enterDelay).duration(enterDuration).ease(enterEase)
+        .attr('d', linePower(parsedData));
 
       // Draw interactive dots
       const self = this;
-      
+
       // Layoffs Dots
       this.dotsContainer.selectAll('.chart-node-layoffs')
         .data(parsedData)
         .enter().append('circle')
         .attr('class', 'chart-node chart-node-layoffs')
-        .attr('r', 4.5)
+        .attr('r', 0)
         .attr('cx', d => xScale(d._x))
-        .attr('cy', d => yScaleLeft(+d.layoffs))
+        .attr('cy', this._animated ? d => yScaleLeft(+d.layoffs) : innerHeight)
         .style('fill', 'var(--bg-base)')
         .style('stroke', 'var(--accent-danger)')
+        .transition().duration(enterDuration).ease(enterEase)
+        .attr('r', 4.5)
+        .attr('cy', d => yScaleLeft(+d.layoffs));
+
+      this.dotsContainer.selectAll('.chart-node-layoffs')
         .on('mouseover', function(event, d) {
           d3.select(this).transition().duration(150).attr('r', 7.5);
+          const qNum = Math.ceil((d._x.getMonth() + 1) / 3);
           const htmlContent = `
             <div class="d3-tooltip-title">Tech Layoffs</div>
             <div class="d3-tooltip-row">
-              <span>Year:</span>
-              <span class="d3-tooltip-val" style="color: #fff">${d3.timeFormat('%Y')(d._x)}</span>
+              <span>Period:</span>
+              <span class="d3-tooltip-val" style="color: #fff">Q${qNum} ${d3.timeFormat('%Y')(d._x)}</span>
             </div>
             <div class="d3-tooltip-row">
               <span>Employees laid off:</span>
@@ -278,16 +314,22 @@ export class LineChart {
           tooltip.hide();
         });
 
-      // Power Dots
+      // Power Dots — yearly snapshots only (DC power data is annual)
+      const powerDotData = parsedData.filter((d, i) => d.isYearStart || i === parsedData.length - 1);
       this.dotsContainer.selectAll('.chart-node-power')
-        .data(parsedData)
+        .data(powerDotData)
         .enter().append('circle')
         .attr('class', 'chart-node chart-node-power')
-        .attr('r', 4.5)
+        .attr('r', 0)
         .attr('cx', d => xScale(d._x))
-        .attr('cy', d => yScaleRight(+d.datacenterPower))
+        .attr('cy', this._animated ? d => yScaleRight(+d.datacenterPower) : innerHeight)
         .style('fill', 'var(--bg-base)')
         .style('stroke', 'var(--accent-primary)')
+        .transition().delay(enterDelay).duration(enterDuration).ease(enterEase)
+        .attr('r', 4.5)
+        .attr('cy', d => yScaleRight(+d.datacenterPower));
+
+      this.dotsContainer.selectAll('.chart-node-power')
         .on('mouseover', function(event, d) {
           d3.select(this).transition().duration(150).attr('r', 7.5);
           const htmlContent = `
@@ -308,6 +350,8 @@ export class LineChart {
           d3.select(this).transition().duration(150).attr('r', 4.5);
           tooltip.hide();
         });
+
+      this._animated = true;
 
       // Draw legends manually
       this.drawLegendDual();
@@ -501,13 +545,14 @@ export class LineChart {
    * Resizes coordinates and scales on screen adjust.
    */
   resize() {
-    if (this.data) {
-      const { xKey, yKey, xScaleType } = this.config;
-      const parsedData = this.data.map(d => {
-        const parsedX = xScaleType === 'time' && typeof d[xKey] === 'string' ? new Date(d[xKey]) : +d[xKey];
-        return { ...d, _x: parsedX, _y: +d[yKey] };
-      });
-      this.draw(parsedData);
-    }
+    if (!this.data) return;
+    const { width, height } = getDimensions(this.container, this.config.margin);
+    if (width === this._lastWidth && height === this._lastHeight) return;
+    const { xKey, yKey, xScaleType } = this.config;
+    const parsedData = this.data.map(d => {
+      const parsedX = xScaleType === 'time' && typeof d[xKey] === 'string' ? new Date(d[xKey]) : +d[xKey];
+      return { ...d, _x: parsedX, _y: +d[yKey] };
+    });
+    this.draw(parsedData);
   }
 }

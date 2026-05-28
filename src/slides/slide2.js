@@ -41,22 +41,47 @@ export const narrative = {
 };
 
 function buildTimeseries(layoffsData, aterioYearlyMW) {
-  const byYear = new Map();
+  // Aggregate layoffs by quarter (exact dates available in layoffs.fyi data)
+  const byQuarter = new Map();
   layoffsData.forEach(d => {
     if (d.country !== 'United States' || !d.total_laid_off) return;
-    const raw  = d.date || '';
-    const year = raw.includes('/') ? +raw.split('/')[2] : +raw.slice(0, 4);
+    const raw = d.date || '';
+    let year, month;
+    if (raw.includes('/')) {
+      const p = raw.split('/');
+      month = +p[0]; year = +p[2];
+    } else {
+      year = +raw.slice(0, 4); month = 1;
+    }
     if (!year || isNaN(year)) return;
-    byYear.set(year, (byYear.get(year) || 0) + (+d.total_laid_off));
+    const key = `${year}-${Math.ceil(month / 3)}`;
+    byQuarter.set(key, (byQuarter.get(key) || 0) + (+d.total_laid_off));
   });
 
-  return aterioYearlyMW
-    .filter(d => d.year >= 2020 && d.year <= 2026)
-    .map(d => ({
-      date:             `${d.year}-01-01`,
-      layoffs:          byYear.get(d.year) || 0,
-      datacenterPower:  Math.round(d.mw / 1000 * 10) / 10  // convert MW → GW, 1dp
-    }));
+  // Yearly power lookup — include one year beyond range for end interpolation
+  const yearPower = new Map(
+    aterioYearlyMW
+      .filter(d => d.year >= 2019 && d.year <= 2027)
+      .map(d => [d.year, Math.round(d.mw / 1000 * 10) / 10])
+  );
+
+  // One point per quarter, 2020 Q1 → 2026 Q4
+  // DC power linearly interpolated between yearly snapshots
+  const rows = [];
+  for (let year = 2020; year <= 2026; year++) {
+    for (let q = 1; q <= 4; q++) {
+      const p0 = yearPower.get(year)     || 0;
+      const p1 = yearPower.get(year + 1) || p0;
+      const gw = Math.round((p0 + ((q - 1) / 4) * (p1 - p0)) * 10) / 10;
+      rows.push({
+        date:            `${year}-${String((q - 1) * 3 + 1).padStart(2, '0')}-01`,
+        layoffs:         byQuarter.get(`${year}-${q}`) || 0,
+        datacenterPower: gw,
+        isYearStart:     q === 1,
+      });
+    }
+  }
+  return rows;
 }
 
 export function updateKPIs(metrics, { layoffsData, aterioYearlyMW }) {
@@ -117,7 +142,7 @@ export function render({ containerLeft, containerRight, layoffsData, aterioYearl
   document.getElementById('supporting-chart-title').textContent = "Layoff Events by Company & Funding Stage";
   d3.select('#supporting-chart-mode-badge').text('Scatter · layoffs.fyi').style('display', 'block');
 
-  const STAGE_ORDER = ['Seed', 'Series A', 'Series B', 'Series C', 'Series D+', 'Private Equity', 'Post-IPO', 'Acquired'];
+  const STAGE_ORDER = ['Seed', 'Series A', 'Series B', 'Series C', 'Series D+', 'Acquired', 'Private Equity', 'Post-IPO'];
   const stageColors = STAGE_ORDER.map((_, i) => d3.interpolatePlasma(0.15 + (i / (STAGE_ORDER.length - 1)) * 0.8));
 
   const parseDate = d3.timeParse('%m/%d/%Y');

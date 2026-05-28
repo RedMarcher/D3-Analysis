@@ -452,6 +452,17 @@
   filter: grayscale(1);
 }
 
+.legend-size-divider {
+  width: 100%;
+  margin-top: 0.6rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border-color);
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  opacity: 0.7;
+  margin-bottom: 0.3rem;
+}
+
 .legend-color {
   width: 8px;
   height: 8px;

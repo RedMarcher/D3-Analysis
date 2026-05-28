@@ -59,14 +59,19 @@ function _tickOperator() {
   _cycleIdx2 = (_cycleIdx2 + 1) % _top3Ops.length;
 }
 
-export function cleanup() {
+function _clearTimers() {
   if (_cycleInterval)  { clearInterval(_cycleInterval);  _cycleInterval  = null; }
   if (_cycleInterval2) { clearInterval(_cycleInterval2); _cycleInterval2 = null; }
   if (_cycleTimeout2)  { clearTimeout(_cycleTimeout2);   _cycleTimeout2  = null; }
 }
 
+export function cleanup() {
+  _clearTimers();
+  document.querySelector('.charts-grid').style.alignItems = '';
+}
+
 export function updateKPIs(metrics, { aterioStates }) {
-  cleanup();
+  _clearTimers();
   if (!aterioStates) return;
 
   _activeCount  = d3.sum(aterioStates, d => d.active);
@@ -208,9 +213,10 @@ export function render({ containerLeft, geoJson, atlasData, aterioStates, showFa
   panelLocked = false;
 
   document.querySelector('.charts-grid').style.gridTemplateColumns = '1fr';
+  document.querySelector('.charts-grid').style.alignItems = 'start';
   d3.select('#supporting-chart-card').style('display', 'none');
   d3.select('#map-detail-panel').style('display', 'flex');
-  d3.select('#container-us-map').style('height', '100%').style('min-height', '0');
+  d3.select('#container-us-map').style('height', null).style('min-height', null);
 
   document.getElementById('us-map-title').textContent = "U.S. Data Center Geographic Concentration";
   d3.select('#us-map-mode-badge').style('display', 'none');

@@ -179,6 +179,58 @@ body::after {
   font-size: 0.8125rem;
 }
 
+/* ── Slide 2 custom layout ─────────────────────────── */
+.dashboard-grid,
+#slide-2-layout {
+  flex: 1;
+  min-height: 0;
+}
+
+#slide-2-layout {
+  display: none;
+  grid-template-columns: 7fr 13fr;
+  gap: 1.25rem;
+  align-items: stretch;
+}
+
+.s2-left,
+.s2-right {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  min-height: 0;
+}
+
+.s2-chart-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 220px;
+}
+
+.s2-left .s2-chart-card:first-child {
+  flex: 1;
+}
+
+.s2-left .s2-chart-card:last-child {
+  flex: 0 0 auto;
+}
+
+.s2-kpi-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+.s2-narrative {
+  flex: 0 0 auto;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.5rem;
+}
+
 /* Responsive Overrides */
 @media (max-width: 1200px) {
   .dashboard-grid {

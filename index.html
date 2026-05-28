@@ -101,8 +101,8 @@
               <div id="us-map-controls" class="map-controls-group"></div>
             </div>
             <!-- Map + Detail Panel row -->
-            <div style="display: flex; flex-grow: 1; gap: 0.75rem; min-height: 0;">
-              <div class="chart-container-wrapper" id="container-us-map" style="flex: 1; height: 420px;"></div>
+            <div style="display: flex; gap: 0.75rem;">
+              <div class="chart-container-wrapper" id="container-us-map" style="flex: 1;"></div>
               <!-- Fixed detail panel, only visible on slide 1 -->
               <div id="map-detail-panel" class="map-detail-panel">
                 <div class="map-detail-placeholder">
@@ -137,6 +137,74 @@
         </div>
 
       </main>
+    </div>
+
+    <!-- Slide 2 Custom Layout (shown only when slide 2 is active) -->
+    <div id="slide-2-layout">
+
+      <!-- Left column: narrative on top, then KPIs -->
+      <div class="s2-right">
+
+        <div class="glass-card s2-narrative" id="s2-narrative-card">
+          <div class="narrative-header">
+            <span class="narrative-slide-number" id="s2-narrative-lbl"></span>
+            <h2 class="narrative-title" id="s2-narrative-title"></h2>
+          </div>
+          <div class="narrative-body" id="s2-narrative-body"></div>
+          <div class="takeaway-card" id="s2-takeaway-card">
+            <div class="takeaway-title" id="s2-takeaway-title"></div>
+            <div class="takeaway-text" id="s2-takeaway-text"></div>
+          </div>
+        </div>
+
+        <div class="glass-card metric-card" id="kpi-s2-1">
+          <span class="metric-label">Total US Tech Layoffs</span>
+          <span class="metric-value">0</span>
+          <span class="metric-trend down"><span>--</span></span>
+        </div>
+
+        <div class="s2-kpi-row">
+          <div class="glass-card metric-card" id="kpi-s2-2">
+            <span class="metric-label">DC Power Capacity (2026)</span>
+            <span class="metric-value">0</span>
+            <span class="metric-trend up"><span>--</span></span>
+          </div>
+          <div class="glass-card metric-card" id="kpi-s2-3">
+            <span class="metric-label">Layoffs per GW</span>
+            <span class="metric-value">0</span>
+            <span class="metric-trend down"><span>--</span></span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right column: line chart on top, scatter on bottom -->
+      <div class="s2-left">
+
+        <div class="glass-card s2-chart-card">
+          <div class="glass-card-title" style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="display:flex; flex-direction:column;">
+              <span>U.S. Tech Layoffs vs. Data Center Power Capacity</span>
+              <span style="font-size:0.8125rem; font-weight:700; color:var(--accent-primary); font-family:var(--font-family-title);">Dual-Axis · Aterio + layoffs.fyi</span>
+            </div>
+          </div>
+          <div class="chart-container-wrapper" id="s2-container-line" style="flex:1; min-height:0;"></div>
+          <div class="legend-container" id="legend-s2-line"></div>
+        </div>
+
+        <div class="glass-card s2-chart-card">
+          <div class="glass-card-title" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+            <div style="display:flex; flex-direction:column;">
+              <span>Layoff Events by Company &amp; Funding Stage</span>
+              <span style="font-size:0.8125rem; font-weight:700; color:var(--accent-secondary); font-family:var(--font-family-title);">Scatter · layoffs.fyi</span>
+            </div>
+            <div id="s2-scatter-controls" class="chart-controls-group"></div>
+          </div>
+          <div class="chart-container-wrapper" id="s2-container-scatter" style="height: 360px;"></div>
+          <div class="legend-container" id="legend-s2-scatter"></div>
+        </div>
+
+      </div>
     </div>
 
     <!-- Slideshow Navigation Footer -->

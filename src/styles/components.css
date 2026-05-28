@@ -87,6 +87,11 @@
   min-height: 250px;
 }
 
+#container-us-map {
+  height: 500px;
+  min-height: 200px;
+}
+
 .chart-container-wrapper svg {
   width: 100%;
   height: 100%;

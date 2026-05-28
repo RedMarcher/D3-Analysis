@@ -218,11 +218,13 @@ export class LineChart {
         .curve(d3.curveMonotoneX);
 
       const linePower = d3.line()
+        .defined(d => d.datacenterPower != null)
         .x(d => xScale(d._x))
         .y(d => yScaleRight(+d.datacenterPower))
         .curve(d3.curveMonotoneX);
 
       const areaPower = d3.area()
+        .defined(d => d.datacenterPower != null)
         .x(d => xScale(d._x))
         .y0(innerHeight)
         .y1(d => yScaleRight(+d.datacenterPower))
@@ -238,8 +240,10 @@ export class LineChart {
       const flatAreaLayoffs = d3.area()
         .x(d => xScale(d._x)).y0(innerHeight).y1(innerHeight).curve(d3.curveMonotoneX);
       const flatLinePower = d3.line()
+        .defined(d => d.datacenterPower != null)
         .x(d => xScale(d._x)).y(innerHeight).curve(d3.curveMonotoneX);
       const flatAreaPower = d3.area()
+        .defined(d => d.datacenterPower != null)
         .x(d => xScale(d._x)).y0(innerHeight).y1(innerHeight).curve(d3.curveMonotoneX);
 
       // Draw Curve 1: Tech Layoffs (Coral red)
@@ -315,7 +319,7 @@ export class LineChart {
         });
 
       // Power Dots — yearly snapshots only (DC power data is annual)
-      const powerDotData = parsedData.filter((d, i) => d.isYearStart || i === parsedData.length - 1);
+      const powerDotData = parsedData.filter(d => d.isYearStart && d.datacenterPower != null);
       this.dotsContainer.selectAll('.chart-node-power')
         .data(powerDotData)
         .enter().append('circle')

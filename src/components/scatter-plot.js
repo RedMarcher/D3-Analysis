@@ -148,7 +148,7 @@ export class ScatterPlot {
 
     this.sizeScale = d3.scaleSqrt()
       .domain(d3.extent(this.data, d => +d[sizeKey]))
-      .range([3, innerWidth > 500 ? 36 : 18]);
+      .range([3, Math.min(20, innerWidth / 28)]);
 
     this.zoom
       .translateExtent([[0, 0], [innerWidth, innerHeight]])

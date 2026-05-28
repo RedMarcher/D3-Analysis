@@ -1,79 +1,249 @@
 import * as d3 from 'd3';
 import { USMap } from '../components/us-map.js';
-import { DonutChart } from '../components/donut-chart.js';
 
 export const narrative = {
-  lbl: "Case Study 1: Real-World Distribution",
+  lbl: "Exhibit 1: Real-World Distribution",
   title: "The Massive Infrastructure Footprint",
   body: `
-    <p>The U.S. data center footprint is expanding exponentially, driven by AI and cloud infrastructure demands. This first slide illustrates where the physical infrastructure is being built.</p>
+    <p>The U.S. data center footprint is expanding rapidly, driven by AI and cloud infrastructure demands. This exhibit illustrates where the physical infrastructure is concentrated — and where it is headed.</p>
     <ul class="narrative-bullets">
-      <li><strong>Virginia, California, and Texas</strong> hold the highest operational densities in the world.</li>
-      <li><strong>Planned additions</strong> show that growth is accelerated, with an estimated 39% capacity increase nationwide in active development.</li>
-      <li><strong>Highly Concentrated:</strong> Virginia alone hosts over 450 active gigawatt-scale data centers, acting as the global hub.</li>
+      <li><strong>Virginia, Texas, and California</strong> lead in active verified facilities, with Virginia more than doubling the next state.</li>
+      <li><strong>Pipeline dwarfs reality:</strong> 4,138 facilities are planned or under construction — more than double the 1,963 currently active.</li>
+      <li><strong>Amazon &amp; Microsoft</strong> dominate the landscape, controlling the majority of capacity in every major hub state.</li>
     </ul>
   `,
   takeawayTitle: "Conclusive Takeaway: The Illusion of Scale",
   takeawayText: "While the physical footprint is massive, this growth is highly localized. Corporations select sites based on tax breaks and low energy rates, forcing local economies to bear the structural burden of corporate computing expansion."
 };
 
-export function updateKPIs(metrics, { slideData, atlasData, showFacilitiesOverlay }) {
-  const totalPlanned = d3.sum(slideData.stateData, d => d.plannedDataCenters);
-  const activeCount = atlasData ? atlasData.length : 1481;
+let _cycleInterval  = null;
+let _cycleInterval2 = null;
+let _cycleTimeout2  = null;
+let _cycleMetrics   = null;
+let _top3States     = [];
+let _top3Ops        = [];
+let _cycleIdx       = 0;
+let _cycleIdx2      = 0;
+let _activeCount    = 0;
 
-  let hubLabel = "Virginia Share";
-  let hubVal = 450;
-  let hubTrend = "Highest Global Capital";
-
-  if (showFacilitiesOverlay && atlasData) {
-    const vaCount = atlasData.filter(d => d.state_abb === 'VA').length;
-    const vaPct = ((vaCount / atlasData.length) * 100).toFixed(1);
-    hubLabel = "Virginia Footprint";
-    hubVal = vaCount;
-    hubTrend = `${vaPct}% of U.S. total`;
-  }
-
-  metrics.update({
-    overallTotal: { label: "Nationwide Active", value: activeCount, trend: "Atlas verified facilities", trendDirection: "up" },
-    peakValue: { label: "Planned Additions", value: totalPlanned, trend: "+39% Nationwide boost", trendDirection: "up" },
-    activeCount: { label: hubLabel, value: hubVal, trend: hubTrend, trendDirection: "up" }
+function _tickTopState() {
+  if (!_cycleMetrics || !_top3States.length) return;
+  const entry = _top3States[_cycleIdx];
+  const rank  = ['#1', '#2', '#3'][_cycleIdx];
+  const pct   = ((entry.active / _activeCount) * 100).toFixed(1);
+  _cycleMetrics.update({
+    activeCount: {
+      label: `${rank} State (${entry.state_name})`,
+      value: entry.active,
+      trend: `${pct}% of U.S. total · Aterio`,
+      trendDirection: 'up',
+      raw: true
+    }
   });
+  _cycleIdx = (_cycleIdx + 1) % _top3States.length;
 }
 
-export function render({ containerLeft, containerRight, geoJson, slideData, atlasData, showFacilitiesOverlay, onOverlayToggle }) {
-  document.querySelector('.charts-grid').style.gridTemplateColumns = '1.2fr 0.8fr';
+function _tickOperator() {
+  if (!_cycleMetrics || !_top3Ops.length) return;
+  const entry = _top3Ops[_cycleIdx2];
+  const rank  = ['#1', '#2', '#3'][_cycleIdx2];
+  _cycleMetrics.update({
+    peakValue: {
+      label: `${rank} Operator`,
+      value: entry.count,
+      trend: `${entry.name} · ${entry.pct}% of active`,
+      trendDirection: 'up',
+      raw: true
+    }
+  });
+  _cycleIdx2 = (_cycleIdx2 + 1) % _top3Ops.length;
+}
 
-  document.getElementById('us-map-title').textContent = "U.S. Data Center Hubs & Planned Growth";
-  d3.select('#us-map-mode-badge').text('Albers USA').style('display', 'block');
+export function cleanup() {
+  if (_cycleInterval)  { clearInterval(_cycleInterval);  _cycleInterval  = null; }
+  if (_cycleInterval2) { clearInterval(_cycleInterval2); _cycleInterval2 = null; }
+  if (_cycleTimeout2)  { clearTimeout(_cycleTimeout2);   _cycleTimeout2  = null; }
+}
+
+export function updateKPIs(metrics, { aterioStates }) {
+  cleanup();
+  if (!aterioStates) return;
+
+  _activeCount  = d3.sum(aterioStates, d => d.active);
+  _cycleMetrics = metrics;
+
+  _top3States = [...aterioStates].sort((a, b) => b.active - a.active).slice(0, 3);
+
+  // Aggregate dominant operators across all states
+  const opMap = new Map();
+  aterioStates.forEach(s => {
+    if (!s.dominant_operator) return;
+    opMap.set(s.dominant_operator, (opMap.get(s.dominant_operator) || 0) + s.active);
+  });
+  _top3Ops = Array.from(opMap)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([name, count]) => ({ name, count, pct: ((count / _activeCount) * 100).toFixed(1) }));
+
+  _cycleIdx  = 1;
+  _cycleIdx2 = 1;
+
+  const firstState = _top3States[0];
+  const firstOp    = _top3Ops[0];
+
+  metrics.update({
+    overallTotal: {
+      label: "Nationwide Active", value: _activeCount,
+      trend: "Aterio verified facilities", trendDirection: "up", raw: true
+    },
+    peakValue: {
+      label: "#1 Operator", value: firstOp.count,
+      trend: `${firstOp.name} · ${firstOp.pct}% of active`,
+      trendDirection: "up", raw: true
+    },
+    activeCount: {
+      label: `#1 State (${firstState.state_name})`, value: firstState.active,
+      trend: `${((firstState.active / _activeCount) * 100).toFixed(1)}% of U.S. total · Aterio`,
+      trendDirection: "up", raw: true
+    }
+  });
+
+  _cycleInterval = setInterval(_tickTopState, 3000);
+  _cycleTimeout2 = setTimeout(() => {
+    _cycleInterval2 = setInterval(_tickOperator, 3000);
+  }, 1500);
+}
+
+let panelLocked = false;
+
+function updateDetailPanel({ type, name, item }) {
+  const placeholder = document.querySelector('.map-detail-placeholder');
+  const content     = document.querySelector('.map-detail-content');
+  if (!placeholder || !content) return;
+
+  placeholder.style.display = 'none';
+  content.style.display     = 'block';
+
+  if (type === 'facility') {
+    const sqft = +item.sqft;
+    document.getElementById('detail-state-name').textContent = item.name || 'Data Center';
+    document.getElementById('detail-rows').innerHTML = `
+      <div class="map-detail-row">
+        <span class="map-detail-row-label">Operator</span>
+        <span class="map-detail-row-value" style="color: var(--accent-primary); font-size: 0.8rem">${item.operator || 'Independent'}</span>
+      </div>
+      <div class="map-detail-row">
+        <span class="map-detail-row-label">Location</span>
+        <span class="map-detail-row-value" style="font-size: 0.8rem">${item.county}, ${item.state}</span>
+      </div>
+      <div class="map-detail-row">
+        <span class="map-detail-row-label">Building Size</span>
+        <span class="map-detail-row-value" style="color: var(--accent-secondary)">${sqft > 0 ? sqft.toLocaleString() + ' sqft' : '—'}</span>
+      </div>
+      <div class="map-detail-row" style="margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--border-color)">
+        <span class="map-detail-row-label" style="opacity:0.5">Source: IM3 Atlas</span>
+      </div>
+    `;
+    return;
+  }
+
+  if (!item) {
+    placeholder.style.display = 'flex';
+    content.style.display     = 'none';
+    return;
+  }
+
+  const mwStr   = item.active_mw > 0 ? item.active_mw.toLocaleString() + ' MW' : '—';
+  const sqftStr = item.active_sqft > 0 ? (item.active_sqft / 1e6).toFixed(1) + 'M sqft' : '—';
+
+  document.getElementById('detail-state-name').textContent = name;
+  document.getElementById('detail-rows').innerHTML = `
+    <div class="map-detail-row">
+      <span class="map-detail-row-label">Active Facilities</span>
+      <span class="map-detail-row-value" style="color: var(--accent-primary)">${item.active.toLocaleString()}</span>
+    </div>
+    <div class="map-detail-row">
+      <span class="map-detail-row-label">Planned / Pipeline</span>
+      <span class="map-detail-row-value" style="color: var(--accent-secondary)">+${item.planned.toLocaleString()}</span>
+    </div>
+    <div class="map-detail-row">
+      <span class="map-detail-row-label">Active Power</span>
+      <span class="map-detail-row-value" style="color: var(--accent-warning)">${mwStr}</span>
+    </div>
+    <div class="map-detail-row">
+      <span class="map-detail-row-label">#1 Operator</span>
+      <span class="map-detail-row-value" style="color: var(--text-primary); font-size: 0.78rem">
+        ${item.dominant_operator || '—'}${item.dominant_operator ? `<span style="color: var(--accent-warning); margin-left: 0.3rem">(${((item.dominant_operator_n / item.active) * 100).toFixed(0)}%)</span>` : ''}
+      </span>
+    </div>
+    <div class="map-detail-row" style="margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--border-color)">
+      <span class="map-detail-row-label" style="opacity:0.5">Source: Aterio · May 2026</span>
+    </div>
+  `;
+}
+
+function resetDetailPanel() {
+  if (panelLocked) return;
+  const placeholder = document.querySelector('.map-detail-placeholder');
+  const content     = document.querySelector('.map-detail-content');
+  if (placeholder) placeholder.style.display = 'flex';
+  if (content)     content.style.display     = 'none';
+}
+
+function setSourceBadge(isOverlay) {
+  const badge = document.getElementById('map-source-badge');
+  if (!badge) return;
+  if (isOverlay) {
+    badge.textContent = 'Facility dots: IM3 Atlas v2026 · State data: Aterio';
+    badge.title       = 'Dots from IM3 (1,479 coords, no AK/HI). Bubble sizes from Aterio (1,963 active + 4,138 pipeline).';
+    badge.style.color = 'var(--accent-secondary)';
+  } else {
+    badge.textContent = 'Aterio US Data Centers · May 2026';
+    badge.title       = 'Per-state active and pipeline counts from Aterio (aterio.io)';
+    badge.style.color = 'var(--accent-primary)';
+  }
+}
+
+export function render({ containerLeft, geoJson, atlasData, aterioStates, showFacilitiesOverlay, onOverlayToggle }) {
+  panelLocked = false;
+
+  document.querySelector('.charts-grid').style.gridTemplateColumns = '1fr';
+  d3.select('#supporting-chart-card').style('display', 'none');
+  d3.select('#map-detail-panel').style('display', 'flex');
+  d3.select('#container-us-map').style('height', '100%').style('min-height', '0');
+
+  document.getElementById('us-map-title').textContent = "U.S. Data Center Geographic Concentration";
+  d3.select('#us-map-mode-badge').style('display', 'none');
+
+  const titleDiv = document.querySelector('#us-map-mode-badge').parentElement;
+  if (!document.getElementById('map-source-badge')) {
+    const sourceBadge     = document.createElement('span');
+    sourceBadge.id        = 'map-source-badge';
+    sourceBadge.className = 'map-source-badge';
+    titleDiv.appendChild(sourceBadge);
+  }
+  setSourceBadge(showFacilitiesOverlay);
 
   d3.select('#us-map-controls').html(`
     <label class="toggle-control">
       <input type="checkbox" id="chk-show-facilities" ${showFacilitiesOverlay ? 'checked' : ''}>
-      Overlay 1,480+ Real Facilities
+      Overlay 1,479 Real Facilities (IM3)
     </label>
+    <button id="btn-reset-zoom" class="btn-nav" style="padding: 0.25rem 0.625rem; font-size: 0.75rem;">Reset Zoom</button>
   `);
 
-  const usMap = new USMap(containerLeft, geoJson);
-  usMap.update(slideData.stateData, 1, atlasData, showFacilitiesOverlay);
+  const usMap = new USMap(containerLeft, geoJson, {
+    onStateHover:    (payload) => { if (!panelLocked) updateDetailPanel(payload); },
+    onStateOut:      () =>        { if (!panelLocked) resetDetailPanel(); },
+    onStateClick:    (payload) => { panelLocked = true;  updateDetailPanel(payload); },
+    onStateDeselect: () =>        { panelLocked = false; resetDetailPanel(); }
+  });
+  usMap.update(aterioStates, 1, atlasData, showFacilitiesOverlay);
 
   d3.select('#chk-show-facilities').on('change', function() {
+    setSourceBadge(this.checked);
     onOverlayToggle(this.checked, usMap);
   });
 
-  document.getElementById('supporting-chart-title').textContent = "Nationwide Active vs Planned Capacity Share";
-  d3.select('#supporting-chart-mode-badge').text('D3 Donut').style('display', 'block');
-
-  const donut = new DonutChart(containerRight, {
-    categoryKey: 'label',
-    valueKey: 'value',
-    innerRadiusRatio: 0.62,
-    colors: ['var(--accent-primary)', 'var(--accent-secondary)']
-  });
-
-  const totalActive = d3.sum(slideData.stateData, d => d.dataCenters);
-  const totalPlanned = d3.sum(slideData.stateData, d => d.plannedDataCenters);
-  donut.update([
-    { label: 'Active Nationwide', value: totalActive },
-    { label: 'Planned Nationwide', value: totalPlanned }
-  ]);
+  d3.select('#btn-reset-zoom').on('click', () => usMap.resetZoom());
 }

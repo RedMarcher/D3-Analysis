@@ -3,7 +3,7 @@ import { BarChart } from '../components/bar-chart.js';
 import { JobChart } from '../components/job-chart.js';
 
 export const narrative = {
-  lbl: "Case Study 4: Rebuttals - The Jobs Myth",
+  lbl: "Exhibit 4: Rebuttals - The Jobs Myth",
   title: "GDP Illusions & Job Skew",
   body: `
     <p>Proponents claim data centers create local GDP and rich jobs. In reality, the labor force is highly skewed towards low-wage and temporary construction roles.</p>

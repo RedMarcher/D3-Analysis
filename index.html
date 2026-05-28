@@ -100,12 +100,25 @@
               </div>
               <div id="us-map-controls" class="map-controls-group"></div>
             </div>
-            <!-- Bounding container for the D3 US Map -->
-            <div class="chart-container-wrapper" id="container-us-map" style="flex-grow: 1; height: 380px;"></div>
+            <!-- Map + Detail Panel row -->
+            <div style="display: flex; flex-grow: 1; gap: 0.75rem; min-height: 0;">
+              <div class="chart-container-wrapper" id="container-us-map" style="flex: 1; height: 420px;"></div>
+              <!-- Fixed detail panel, only visible on slide 1 -->
+              <div id="map-detail-panel" class="map-detail-panel">
+                <div class="map-detail-placeholder">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.3"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                  <span>Hover a state to explore its data center footprint</span>
+                </div>
+                <div class="map-detail-content" style="display:none;">
+                  <div class="map-detail-state-name" id="detail-state-name"></div>
+                  <div class="map-detail-rows" id="detail-rows"></div>
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- Right Column: Supporting Context Chart -->
-          <div class="glass-card" style="position: relative; display: flex; flex-direction: column;">
+          <div id="supporting-chart-card" class="glass-card" style="position: relative; display: flex; flex-direction: column;">
             <div id="loader-supporting-chart" class="skeleton-loader">
               <div class="skeleton-spinner"></div>
               <span class="control-label">Synthesizing Connotation Visuals...</span>

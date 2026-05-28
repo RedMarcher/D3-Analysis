@@ -3,7 +3,7 @@ import { BarChart } from '../components/bar-chart.js';
 import { LineChart } from '../components/line-chart.js';
 
 export const narrative = {
-  lbl: "Case Study 3: Core Argument - Grid Burden",
+  lbl: "Exhibit 3: Core Argument - Grid Burden",
   title: "Energy Demands & Carbon Subsidies",
   body: `
     <p>A single modern data center draws as much electricity as a medium-sized city, siphoning immense public energy grids and stalling clean transitions.</p>

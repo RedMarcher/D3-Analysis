@@ -23,10 +23,12 @@ document.addEventListener('DOMContentLoaded', () => {
     d3.json('/datacenters_slideshow.json'),
     d3.csv('/im3_open_source_data_center_atlas_v2026.02.09.csv'),
     d3.csv('/layoffs.csv'),
-    d3.csv('/Electricity production by source.csv')
+    d3.csv('/Electricity production by source.csv'),
+    d3.json('/aterio_states.json'),
+    d3.json('/aterio_yearly_mw.json')
   ])
-    .then(([geoJson, slideData, atlasData, layoffsData, energyData]) => {
-      const data = { geoJson, slideData, atlasData, layoffsData, energyData };
+    .then(([geoJson, slideData, atlasData, layoffsData, energyData, aterioStates, aterioYearlyMW]) => {
+      const data = { geoJson, slideData, atlasData, layoffsData, energyData, aterioStates, aterioYearlyMW };
 
       setupNavigation();
       renderSlide(data);
@@ -69,6 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
   function renderSlide(data) {
+    slides.forEach(s => s.cleanup?.());
     const slide = slides[activeSlide];
 
     // Navigation state
@@ -91,8 +94,10 @@ document.addEventListener('DOMContentLoaded', () => {
     slide.updateKPIs(metrics, { ...data, showFacilitiesOverlay });
 
     // Reset chart containers
-    d3.select('#container-us-map').style('height', null).html('');
-    d3.select('#container-supporting-chart').style('height', null).html('');
+    d3.select('#container-us-map').style('height', null).style('min-height', null).html('');
+    d3.select('#supporting-chart-card').style('display', null);
+    d3.select('#container-supporting-chart').style('display', null).style('height', null).html('');
+    d3.select('#map-detail-panel').style('display', 'none');
     d3.select('#us-map-controls').html('');
     d3.select('#supporting-chart-controls').html('');
     const legendContainer = document.getElementById('legend-supporting-chart');
@@ -106,7 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
       showFacilitiesOverlay,
       onOverlayToggle: (checked, usMap) => {
         showFacilitiesOverlay = checked;
-        usMap.update(data.slideData.stateData, 1, data.atlasData, showFacilitiesOverlay);
+        usMap.update(data.aterioStates, 1, data.atlasData, showFacilitiesOverlay);
         slide.updateKPIs(metrics, { ...data, showFacilitiesOverlay });
       }
     });

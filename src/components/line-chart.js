@@ -260,18 +260,14 @@ export class LineChart {
         .on('mouseover', function(event, d) {
           d3.select(this).transition().duration(150).attr('r', 7.5);
           const htmlContent = `
-            <div class="d3-tooltip-title">Tech Job Cuts Spikes</div>
+            <div class="d3-tooltip-title">Tech Layoffs</div>
             <div class="d3-tooltip-row">
-              <span>Timeline:</span>
-              <span class="d3-tooltip-val" style="color: #fff">${d3.timeFormat('%B %Y')(d._x)}</span>
+              <span>Year:</span>
+              <span class="d3-tooltip-val" style="color: #fff">${d3.timeFormat('%Y')(d._x)}</span>
             </div>
             <div class="d3-tooltip-row">
-              <span>Cumulative Layoffs:</span>
-              <span class="d3-tooltip-val" style="color: var(--accent-danger)">${formatValue(d.layoffs)} employees</span>
-            </div>
-            <div class="d3-tooltip-row">
-              <span>Connotation:</span>
-              <span class="d3-tooltip-val" style="color: var(--accent-warning); font-size:0.7rem">Infrastructure growth does not secure labor</span>
+              <span>Employees laid off:</span>
+              <span class="d3-tooltip-val" style="color: var(--accent-danger)">${Math.round(d.layoffs).toLocaleString()}</span>
             </div>
           `;
           tooltip.show(htmlContent, event);
@@ -295,18 +291,14 @@ export class LineChart {
         .on('mouseover', function(event, d) {
           d3.select(this).transition().duration(150).attr('r', 7.5);
           const htmlContent = `
-            <div class="d3-tooltip-title">Corporate Infrastructure Boom</div>
+            <div class="d3-tooltip-title">DC Power Capacity</div>
             <div class="d3-tooltip-row">
-              <span>Timeline:</span>
-              <span class="d3-tooltip-val" style="color: #fff">${d3.timeFormat('%B %Y')(d._x)}</span>
+              <span>Year:</span>
+              <span class="d3-tooltip-val" style="color: #fff">${d3.timeFormat('%Y')(d._x)}</span>
             </div>
             <div class="d3-tooltip-row">
-              <span>Data Center Capacity:</span>
+              <span>Active capacity:</span>
               <span class="d3-tooltip-val" style="color: var(--accent-primary)">${d.datacenterPower} GW</span>
-            </div>
-            <div class="d3-tooltip-row">
-              <span>Connotation:</span>
-              <span class="d3-tooltip-val" style="color: var(--accent-secondary); font-size:0.7rem">Capital gain surges independently of jobs</span>
             </div>
           `;
           tooltip.show(htmlContent, event);

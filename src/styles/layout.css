@@ -274,3 +274,49 @@ body::after {
     justify-content: center;
   }
 }
+
+/* ── Dynamic Slide Layout Modes ─────────────────────────── */
+
+/* Slide 1 - Default (Top Metrics, Map + Chart) */
+.slide-1-mode {
+  flex-direction: column;
+}
+.slide-1-mode .metrics-row {
+  order: 0;
+}
+.slide-1-mode .charts-grid {
+  order: 1;
+}
+
+/* Slide 3 - Vertical Metrics on Right, Stacked Charts on Left */
+.slide-3-mode {
+  flex-direction: row;
+}
+.slide-3-mode .charts-grid {
+  order: 1;
+  flex: 1;
+  display: flex !important;
+  flex-direction: column; /* Stack the two charts */
+}
+.slide-3-mode .charts-grid > * {
+  flex: 1;
+  min-height: 300px;
+}
+.slide-3-mode .metrics-row {
+  order: 2;
+  display: flex;
+  flex-direction: column;
+  width: 260px;
+  flex: 0 0 260px;
+}
+
+/* Slide 4 - Horizontal Metrics on Bottom, Side-by-Side Charts on Top */
+.slide-4-mode {
+  flex-direction: column;
+}
+.slide-4-mode .charts-grid {
+  order: 1;
+}
+.slide-4-mode .metrics-row {
+  order: 2;
+}

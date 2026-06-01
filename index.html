@@ -1,13 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Economic Realities of US Data Center Expansion - Interactive Slideshow</title>
   <!-- SEO Elements -->
-  <meta name="description" content="An interactive, D3.js powered persuasive slideshow analyzing the true resource cost, energy demand, and employment impact of data centers in the U.S.">
+  <meta name="description"
+    content="An interactive, D3.js powered persuasive slideshow analyzing the true resource cost, energy demand, and employment impact of data centers in the U.S.">
   <link rel="stylesheet" href="/src/styles/main.css">
 </head>
+
 <body>
   <!-- Master Floating Tooltip Container -->
   <div id="chart-tooltip" class="d3-tooltip"></div>
@@ -20,21 +23,22 @@
         <p id="main-header-subtitle">Do Data Centers bring Net Economic Benefits to the United States?</p>
       </div>
       <!-- Step progress text -->
-      <div class="app-footer-info" id="slide-progress-text" style="font-weight: 700; color: var(--accent-primary); font-family: var(--font-family-title); letter-spacing: 0.5px;">
+      <div class="app-footer-info" id="slide-progress-text"
+        style="font-weight: 700; color: var(--accent-primary); font-family: var(--font-family-title); letter-spacing: 0.5px;">
         Slide 1 of 4
       </div>
     </header>
 
     <!-- Main Slideshow Grid -->
     <div class="dashboard-grid">
-      
+
       <!-- Left Panel: Persuasive Narrative Sidebar -->
       <aside class="narrative-panel" id="slideshow-narrative-container">
         <div class="narrative-header">
           <span class="narrative-slide-number" id="narrative-slide-lbl">Case Study 1</span>
           <h2 class="narrative-title" id="narrative-slide-title">Infrastructure Growth</h2>
         </div>
-        
+
         <div class="narrative-body" id="narrative-slide-body">
           <p>Analyzing the scale and future projections of data center construction.</p>
           <ul class="narrative-bullets">
@@ -54,7 +58,7 @@
 
       <!-- Right Panel: Presentation Area (KPIs + Visuals) -->
       <main class="main-presentation-panel">
-        
+
         <!-- Top Metrics Row: KPIs -->
         <div class="metrics-row" id="metrics-card-container">
           <!-- Metric Card 1 -->
@@ -93,10 +97,13 @@
               <div class="skeleton-spinner"></div>
               <span class="control-label">Projecting Geographic Data...</span>
             </div>
-            <div class="glass-card-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+            <div class="glass-card-title"
+              style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
               <div style="display: flex; flex-direction: column;">
                 <span id="us-map-title">U.S. Data Center Regional Concentration</span>
-                <span id="us-map-mode-badge" style="font-size: 0.8125rem; font-weight: 700; color: var(--accent-primary); font-family: var(--font-family-title);">Albers USA</span>
+                <span id="us-map-mode-badge"
+                  style="font-size: 0.8125rem; font-weight: 700; color: var(--accent-primary); font-family: var(--font-family-title);">Albers
+                  USA</span>
               </div>
               <div id="us-map-controls" class="map-controls-group"></div>
             </div>
@@ -106,7 +113,12 @@
               <!-- Fixed detail panel, only visible on slide 1 -->
               <div id="map-detail-panel" class="map-detail-panel">
                 <div class="map-detail-placeholder">
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.3"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                    stroke-linecap="round" stroke-linejoin="round" style="opacity:0.3">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                  </svg>
                   <span>Hover a state to explore its data center footprint</span>
                 </div>
                 <div class="map-detail-content" style="display:none;">
@@ -118,20 +130,25 @@
           </div>
 
           <!-- Right Column: Supporting Context Chart -->
-          <div id="supporting-chart-card" class="glass-card" style="position: relative; display: flex; flex-direction: column;">
+          <div id="supporting-chart-card" class="glass-card"
+            style="position: relative; display: flex; flex-direction: column;">
             <div id="loader-supporting-chart" class="skeleton-loader">
               <div class="skeleton-spinner"></div>
               <span class="control-label">Synthesizing Connotation Visuals...</span>
             </div>
-            <div class="glass-card-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+            <div class="glass-card-title"
+              style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
               <div style="display: flex; flex-direction: column;">
                 <span id="supporting-chart-title">Visual Context Breakdown</span>
-                <span id="supporting-chart-mode-badge" style="font-size: 0.8125rem; font-weight: 700; color: var(--accent-secondary); font-family: var(--font-family-title);">D3 Chart</span>
+                <span id="supporting-chart-mode-badge"
+                  style="font-size: 0.8125rem; font-weight: 700; color: var(--accent-secondary); font-family: var(--font-family-title);">D3
+                  Chart</span>
               </div>
               <div id="supporting-chart-controls" class="chart-controls-group"></div>
             </div>
             <!-- Bounding container for supporting D3 charts -->
-            <div class="chart-container-wrapper" id="container-supporting-chart" style="flex-grow: 1; height: 380px;"></div>
+            <div class="chart-container-wrapper" id="container-supporting-chart" style="flex-grow: 1; height: 380px;">
+            </div>
             <div class="legend-container" id="legend-supporting-chart"></div>
           </div>
         </div>
@@ -185,7 +202,9 @@
           <div class="glass-card-title" style="display:flex; justify-content:space-between; align-items:center;">
             <div style="display:flex; flex-direction:column;">
               <span>U.S. Tech Layoffs vs. Data Center Power Capacity</span>
-              <span style="font-size:0.8125rem; font-weight:700; color:var(--accent-primary); font-family:var(--font-family-title);">Dual-Axis · Aterio + layoffs.fyi</span>
+              <span
+                style="font-size:0.8125rem; font-weight:700; color:var(--accent-primary); font-family:var(--font-family-title);">Aterio
+                + layoffs.fyi</span>
             </div>
           </div>
           <div class="chart-container-wrapper" id="s2-container-line" style="flex:1; min-height:0;"></div>
@@ -193,10 +212,12 @@
         </div>
 
         <div class="glass-card s2-chart-card">
-          <div class="glass-card-title" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+          <div class="glass-card-title"
+            style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
             <div style="display:flex; flex-direction:column;">
               <span>Layoff Events by Company &amp; Funding Stage</span>
-              <span style="font-size:0.8125rem; font-weight:700; color:var(--accent-secondary); font-family:var(--font-family-title);">Scatter · layoffs.fyi</span>
+              <span
+                style="font-size:0.8125rem; font-weight:700; color:var(--accent-secondary); font-family:var(--font-family-title);">layoffs.fyi</span>
             </div>
             <div id="s2-scatter-controls" class="chart-controls-group"></div>
           </div>
@@ -210,13 +231,20 @@
     <!-- Slideshow Navigation Footer -->
     <footer class="slideshow-footer">
       <div class="app-footer-info">
-        Press <kbd style="background: rgba(255,255,255,0.06); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border-color); font-family: var(--font-family-title); font-size: 0.75rem;">←</kbd> and <kbd style="background: rgba(255,255,255,0.06); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border-color); font-family: var(--font-family-title); font-size: 0.75rem;">→</kbd> arrow keys to navigate.
+        Press <kbd
+          style="background: rgba(255,255,255,0.06); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border-color); font-family: var(--font-family-title); font-size: 0.75rem;">←</kbd>
+        and <kbd
+          style="background: rgba(255,255,255,0.06); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border-color); font-family: var(--font-family-title); font-size: 0.75rem;">→</kbd>
+        arrow keys to navigate.
       </div>
-      
+
       <!-- Core nav buttons -->
       <div class="slide-nav-controls">
         <button id="btn-slide-prev" class="btn-nav" aria-label="Previous Slide">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:2px;"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round" style="margin-right:2px;">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
           Back
         </button>
 
@@ -230,7 +258,10 @@
 
         <button id="btn-slide-next" class="btn-nav primary" aria-label="Next Slide">
           Next
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left:2px;"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round" style="margin-left:2px;">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
         </button>
       </div>
     </footer>
@@ -238,4 +269,5 @@
 
   <script type="module" src="/src/main.js"></script>
 </body>
+
 </html>

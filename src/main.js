@@ -93,6 +93,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // KPIs
     slide.updateKPIs(metrics, { ...data, showFacilitiesOverlay });
 
+    // Set dynamic layout class for non-repetitive layout
+    const mainPanel = document.querySelector('.main-presentation-panel');
+    if (mainPanel) {
+      mainPanel.className = `main-presentation-panel slide-${activeSlide + 1}-mode`;
+    }
+
     // Reset chart containers
     d3.select('#container-us-map').style('height', null).style('min-height', null).html('');
     d3.select('#supporting-chart-card').style('display', null);

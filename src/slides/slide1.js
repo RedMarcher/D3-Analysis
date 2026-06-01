@@ -68,6 +68,8 @@ function _clearTimers() {
 export function cleanup() {
   _clearTimers();
   document.querySelector('.charts-grid').style.alignItems = '';
+  const badge = document.getElementById('map-source-badge');
+  if (badge) badge.style.display = 'none';
 }
 
 export function updateKPIs(metrics, { aterioStates }) {
@@ -228,6 +230,9 @@ export function render({ containerLeft, geoJson, atlasData, aterioStates, showFa
     sourceBadge.className = 'map-source-badge';
     titleDiv.appendChild(sourceBadge);
   }
+  const badge = document.getElementById('map-source-badge');
+  if (badge) badge.style.display = 'inline-flex'; // matching common badge styles
+  
   setSourceBadge(showFacilitiesOverlay);
 
   d3.select('#us-map-controls').html(`

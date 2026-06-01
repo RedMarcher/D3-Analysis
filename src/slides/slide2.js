@@ -4,14 +4,14 @@ import { ScatterPlot } from '../components/scatter-plot.js';
 import { MetricCards } from '../components/metric-cards.js';
 
 let _cycleInterval = null;
-let _cycleMetrics  = null;
-let _recentYears   = [];
-let _cycleIdx      = 0;
+let _cycleMetrics = null;
+let _recentYears = [];
+let _cycleIdx = 0;
 
 const _s2Metrics = new MetricCards({
   overallTotal: 'kpi-s2-1',
-  peakValue:    'kpi-s2-2',
-  activeCount:  'kpi-s2-3'
+  peakValue: 'kpi-s2-2',
+  activeCount: 'kpi-s2-3'
 });
 
 function _tickYear() {
@@ -37,7 +37,7 @@ export function cleanup() {
 }
 
 export const narrative = {
-  lbl: "Exhibit 2: Core Argument - Tech Layoffs",
+  lbl: "Exhibit 2: - Tech Layoffs",
   title: "Corporate Gain vs. Stable Labor",
   body: `
     <p>Tech giants are investing billions in new data center physical assets, but are simultaneously conducting massive workforce cuts, shedding hundreds of thousands of jobs.</p>
@@ -82,18 +82,18 @@ function buildTimeseries(layoffsData, aterioYearlyMW) {
   let cumulativeLayoffs = 0;
   for (let year = 2020; year <= 2026; year++) {
     for (let q = 1; q <= 4; q++) {
-      const p0 = yearPower.get(year)     || 0;
+      const p0 = yearPower.get(year) || 0;
       const p1 = yearPower.get(year + 1) || p0;
       const gw = Math.round((p0 + ((q - 1) / 4) * (p1 - p0)) * 10) / 10;
       const qLayoffs = byQuarter.get(`${year}-${q}`) || 0;
       cumulativeLayoffs += qLayoffs;
       // Slash format → parsed as local midnight (avoids UTC timezone off-by-one)
       rows.push({
-        date:            `${year}/${String((q - 1) * 3 + 1).padStart(2, '0')}/01`,
-        layoffs:         cumulativeLayoffs,
+        date: `${year}/${String((q - 1) * 3 + 1).padStart(2, '0')}/01`,
+        layoffs: cumulativeLayoffs,
         datacenterPower: gw,
-        isYearStart:     q === 1,
-        _newLayoffs:     qLayoffs,
+        isYearStart: q === 1,
+        _newLayoffs: qLayoffs,
       });
     }
   }
@@ -120,13 +120,13 @@ export function updateKPIs(metrics, { layoffsData, aterioYearlyMW }) {
 
   _recentYears = aterioYearlyMW
     ? [2024, 2025, 2026].map(y => {
-        const mw = aterioYearlyMW.find(d => d.year === y)?.mw || 0;
-        return { year: y, gw: Math.round(mw / 100) / 10 };
-      })
+      const mw = aterioYearlyMW.find(d => d.year === y)?.mw || 0;
+      return { year: y, gw: Math.round(mw / 100) / 10 };
+    })
     : [];
 
   const latest = _recentYears.find(d => d.year === 2026) || { gw: 0 };
-  const perGW  = latest.gw > 0 ? Math.round(totalLayoffs / latest.gw) : 0;
+  const perGW = latest.gw > 0 ? Math.round(totalLayoffs / latest.gw) : 0;
 
   const payload = {
     overallTotal: {
@@ -162,11 +162,11 @@ export function render({ layoffsData, aterioYearlyMW }) {
   if (s2) s2.style.display = 'grid';
 
   // Populate narrative panel
-  document.getElementById('s2-narrative-lbl').textContent  = narrative.lbl;
+  document.getElementById('s2-narrative-lbl').textContent = narrative.lbl;
   document.getElementById('s2-narrative-title').textContent = narrative.title;
-  document.getElementById('s2-narrative-body').innerHTML    = narrative.body;
-  document.getElementById('s2-takeaway-title').textContent  = narrative.takeawayTitle;
-  document.getElementById('s2-takeaway-text').textContent   = narrative.takeawayText;
+  document.getElementById('s2-narrative-body').innerHTML = narrative.body;
+  document.getElementById('s2-takeaway-title').textContent = narrative.takeawayTitle;
+  document.getElementById('s2-takeaway-text').textContent = narrative.takeawayText;
 
   // Line chart
   const timeseries = buildTimeseries(layoffsData, aterioYearlyMW);
@@ -185,30 +185,30 @@ export function render({ layoffsData, aterioYearlyMW }) {
 
   function normalizeStage(s) {
     if (!s) return null;
-    if (['Series D','Series E','Series F','Series G','Series H','Series I'].includes(s)) return 'Series D+';
+    if (['Series D', 'Series E', 'Series F', 'Series G', 'Series H', 'Series I'].includes(s)) return 'Series D+';
     return STAGE_ORDER.includes(s) ? s : null;
   }
 
   const scatter = new ScatterPlot('#s2-container-scatter', {
-    xKey:       'date',
-    yKey:       'total_laid_off',
-    sizeKey:    'funds_raised',
-    groupKey:   'stage',
+    xKey: 'date',
+    yKey: 'total_laid_off',
+    sizeKey: 'funds_raised',
+    groupKey: 'stage',
     groupLabel: 'Stage',
-    labelKey:   'company',
-    xLabel:     'Date',
-    yLabel:     'Employees Laid Off',
+    labelKey: 'company',
+    xLabel: 'Date',
+    yLabel: 'Employees Laid Off',
     xScaleType: 'time',
     groupOrder: STAGE_ORDER,
-    colors:     stageColors
+    colors: stageColors
   });
 
   const formattedLayoffs = layoffsData.map(d => ({
-    company:        d.company,
-    stage:          normalizeStage(d.stage),
+    company: d.company,
+    stage: normalizeStage(d.stage),
     total_laid_off: +d.total_laid_off,
-    funds_raised:   Math.max(1, +d.funds_raised || 1),
-    date:           parseDate(d.date)
+    funds_raised: Math.max(1, +d.funds_raised || 1),
+    date: parseDate(d.date)
   })).filter(d =>
     d.stage &&
     d.date !== null &&

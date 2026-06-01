@@ -63,6 +63,7 @@ body::after {
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-md);
   box-shadow: var(--shadow-sm);
+  view-transition-name: slide-header;
 }
 
 .app-title-group h1 {
@@ -143,7 +144,13 @@ body::after {
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-md);
   box-shadow: var(--shadow-sm);
+  
+  /* Lock to bottom of viewport to prevent jumping */
+  position: sticky;
+  bottom: 1.5rem;
+  z-index: 100;
   margin-top: auto;
+  view-transition-name: slide-footer;
 }
 
 .slide-nav-controls {

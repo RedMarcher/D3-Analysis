@@ -29,7 +29,7 @@ export function render({ containerLeft, containerRight, slideData }) {
   document.querySelector('.charts-grid').style.gridTemplateColumns = '1fr 1fr';
 
   document.getElementById('us-map-title').textContent = "Data Center Tech vs. Broader Tech Industry Wages";
-  d3.select('#us-map-mode-badge').text('D3 Horizontal Bar').style('display', 'block');
+  d3.select('#us-map-mode-badge').text('Source: Unknown / Requires Verification').style('display', 'block').style('color', 'var(--accent-danger)').style('font-size', '0.75rem');
 
   const wageData = [
     { role: "Software\nEngineer", wage: 145000 },
@@ -63,7 +63,7 @@ export function render({ containerLeft, containerRight, slideData }) {
   wageChart.update(wageData);
 
   document.getElementById('supporting-chart-title').textContent = "Workforce Composition & Demographics";
-  d3.select('#supporting-chart-mode-badge').text('D3 HTML Infographic').style('display', 'block');
+  d3.select('#supporting-chart-mode-badge').text('Source: Unknown / Requires Verification').style('display', 'block').style('color', 'var(--accent-danger)').style('font-size', '0.75rem');
 
   d3.select(containerRight).style('height', 'auto');
   const jobChart = new JobChart(containerRight);

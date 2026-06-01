@@ -16,21 +16,21 @@ export const narrative = {
   takeawayText: "While the physical footprint is massive, this growth is highly localized. Corporations select sites based on tax breaks and low energy rates, forcing local economies to bear the structural burden of corporate computing expansion."
 };
 
-let _cycleInterval  = null;
+let _cycleInterval = null;
 let _cycleInterval2 = null;
-let _cycleTimeout2  = null;
-let _cycleMetrics   = null;
-let _top3States     = [];
-let _top3Ops        = [];
-let _cycleIdx       = 0;
-let _cycleIdx2      = 0;
-let _activeCount    = 0;
+let _cycleTimeout2 = null;
+let _cycleMetrics = null;
+let _top3States = [];
+let _top3Ops = [];
+let _cycleIdx = 0;
+let _cycleIdx2 = 0;
+let _activeCount = 0;
 
 function _tickTopState() {
   if (!_cycleMetrics || !_top3States.length) return;
   const entry = _top3States[_cycleIdx];
-  const rank  = ['#1', '#2', '#3'][_cycleIdx];
-  const pct   = ((entry.active / _activeCount) * 100).toFixed(1);
+  const rank = ['#1', '#2', '#3'][_cycleIdx];
+  const pct = ((entry.active / _activeCount) * 100).toFixed(1);
   _cycleMetrics.update({
     activeCount: {
       label: `${rank} State (${entry.state_name})`,
@@ -46,7 +46,7 @@ function _tickTopState() {
 function _tickOperator() {
   if (!_cycleMetrics || !_top3Ops.length) return;
   const entry = _top3Ops[_cycleIdx2];
-  const rank  = ['#1', '#2', '#3'][_cycleIdx2];
+  const rank = ['#1', '#2', '#3'][_cycleIdx2];
   _cycleMetrics.update({
     peakValue: {
       label: `${rank} Operator`,
@@ -60,9 +60,9 @@ function _tickOperator() {
 }
 
 function _clearTimers() {
-  if (_cycleInterval)  { clearInterval(_cycleInterval);  _cycleInterval  = null; }
+  if (_cycleInterval) { clearInterval(_cycleInterval); _cycleInterval = null; }
   if (_cycleInterval2) { clearInterval(_cycleInterval2); _cycleInterval2 = null; }
-  if (_cycleTimeout2)  { clearTimeout(_cycleTimeout2);   _cycleTimeout2  = null; }
+  if (_cycleTimeout2) { clearTimeout(_cycleTimeout2); _cycleTimeout2 = null; }
 }
 
 export function cleanup() {
@@ -74,7 +74,7 @@ export function updateKPIs(metrics, { aterioStates }) {
   _clearTimers();
   if (!aterioStates) return;
 
-  _activeCount  = d3.sum(aterioStates, d => d.active);
+  _activeCount = d3.sum(aterioStates, d => d.active);
   _cycleMetrics = metrics;
 
   _top3States = [...aterioStates].sort((a, b) => b.active - a.active).slice(0, 3);
@@ -90,11 +90,11 @@ export function updateKPIs(metrics, { aterioStates }) {
     .slice(0, 3)
     .map(([name, count]) => ({ name, count, pct: ((count / _activeCount) * 100).toFixed(1) }));
 
-  _cycleIdx  = 1;
+  _cycleIdx = 1;
   _cycleIdx2 = 1;
 
   const firstState = _top3States[0];
-  const firstOp    = _top3Ops[0];
+  const firstOp = _top3Ops[0];
 
   metrics.update({
     overallTotal: {
@@ -123,11 +123,11 @@ let panelLocked = false;
 
 function updateDetailPanel({ type, name, item }) {
   const placeholder = document.querySelector('.map-detail-placeholder');
-  const content     = document.querySelector('.map-detail-content');
+  const content = document.querySelector('.map-detail-content');
   if (!placeholder || !content) return;
 
   placeholder.style.display = 'none';
-  content.style.display     = 'block';
+  content.style.display = 'block';
 
   if (type === 'facility') {
     const sqft = +item.sqft;
@@ -154,11 +154,11 @@ function updateDetailPanel({ type, name, item }) {
 
   if (!item) {
     placeholder.style.display = 'flex';
-    content.style.display     = 'none';
+    content.style.display = 'none';
     return;
   }
 
-  const mwStr   = item.active_mw > 0 ? item.active_mw.toLocaleString() + ' MW' : '—';
+  const mwStr = item.active_mw > 0 ? item.active_mw.toLocaleString() + ' MW' : '—';
   const sqftStr = item.active_sqft > 0 ? (item.active_sqft / 1e6).toFixed(1) + 'M sqft' : '—';
 
   document.getElementById('detail-state-name').textContent = name;
@@ -190,9 +190,9 @@ function updateDetailPanel({ type, name, item }) {
 function resetDetailPanel() {
   if (panelLocked) return;
   const placeholder = document.querySelector('.map-detail-placeholder');
-  const content     = document.querySelector('.map-detail-content');
+  const content = document.querySelector('.map-detail-content');
   if (placeholder) placeholder.style.display = 'flex';
-  if (content)     content.style.display     = 'none';
+  if (content) content.style.display = 'none';
 }
 
 function setSourceBadge(isOverlay) {
@@ -200,11 +200,11 @@ function setSourceBadge(isOverlay) {
   if (!badge) return;
   if (isOverlay) {
     badge.textContent = 'Facility dots: IM3 Atlas v2026 · State data: Aterio';
-    badge.title       = 'Dots from IM3 (1,479 coords, no AK/HI). Bubble sizes from Aterio (1,963 active + 4,138 pipeline).';
+    badge.title = 'Dots from IM3 (1,479 coords, no AK/HI). Bubble sizes from Aterio (1,963 active + 4,138 pipeline).';
     badge.style.color = 'var(--accent-secondary)';
   } else {
     badge.textContent = 'Aterio US Data Centers · May 2026';
-    badge.title       = 'Per-state active and pipeline counts from Aterio (aterio.io)';
+    badge.title = 'Per-state active and pipeline counts from Aterio (aterio.io)';
     badge.style.color = 'var(--accent-primary)';
   }
 }
@@ -223,8 +223,8 @@ export function render({ containerLeft, geoJson, atlasData, aterioStates, showFa
 
   const titleDiv = document.querySelector('#us-map-mode-badge').parentElement;
   if (!document.getElementById('map-source-badge')) {
-    const sourceBadge     = document.createElement('span');
-    sourceBadge.id        = 'map-source-badge';
+    const sourceBadge = document.createElement('span');
+    sourceBadge.id = 'map-source-badge';
     sourceBadge.className = 'map-source-badge';
     titleDiv.appendChild(sourceBadge);
   }
@@ -244,14 +244,14 @@ export function render({ containerLeft, geoJson, atlasData, aterioStates, showFa
   `);
 
   const usMap = new USMap(containerLeft, geoJson, {
-    onStateHover:    (payload) => { if (!panelLocked) updateDetailPanel(payload); },
-    onStateOut:      () =>        { if (!panelLocked) resetDetailPanel(); },
-    onStateClick:    (payload) => { panelLocked = true;  updateDetailPanel(payload); },
-    onStateDeselect: () =>        { panelLocked = false; resetDetailPanel(); }
+    onStateHover: (payload) => { if (!panelLocked) updateDetailPanel(payload); },
+    onStateOut: () => { if (!panelLocked) resetDetailPanel(); },
+    onStateClick: (payload) => { panelLocked = true; updateDetailPanel(payload); },
+    onStateDeselect: () => { panelLocked = false; resetDetailPanel(); }
   });
   usMap.update(aterioStates, 1, atlasData, showFacilitiesOverlay);
 
-  d3.select('#chk-show-facilities').on('change', function() {
+  d3.select('#chk-show-facilities').on('change', function () {
     setSourceBadge(this.checked);
     onOverlayToggle(this.checked, usMap);
   });

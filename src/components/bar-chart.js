@@ -96,6 +96,22 @@ export class BarChart {
       .transition().duration(500)
       .call(d3.axisLeft(yScale));
 
+    // Handle multiline labels using \n
+    this.yAxisGroup.selectAll('.tick text')
+      .each(function(d) {
+        if (typeof d === 'string' && d.includes('\n')) {
+          const el = d3.select(this);
+          const lines = d.split('\n');
+          el.text('');
+          lines.forEach((line, i) => {
+            el.append('tspan')
+              .attr('x', -10)
+              .attr('dy', i === 0 ? '-0.3em' : '1.1em')
+              .text(line);
+          });
+        }
+      });
+
     // Render gridlines
     this.gridGroup.selectAll('line').remove();
     this.gridGroup.append('g')

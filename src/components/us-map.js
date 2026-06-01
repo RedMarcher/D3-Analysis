@@ -368,6 +368,14 @@ export class USMap {
     `;
   }
 
+  zoomIn() {
+    this.svg.transition().duration(300).call(this.zoom.scaleBy, 1.5);
+  }
+
+  zoomOut() {
+    this.svg.transition().duration(300).call(this.zoom.scaleBy, 1 / 1.5);
+  }
+
   resetZoom() {
     this.svg.transition().duration(500).call(this.zoom.transform, d3.zoomIdentity);
   }

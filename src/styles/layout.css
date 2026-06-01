@@ -183,7 +183,7 @@ body::after {
 .dashboard-grid,
 #slide-2-layout {
   flex: 1;
-  min-height: 0;
+  min-height: 800px;
 }
 
 #slide-2-layout {

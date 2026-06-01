@@ -32,21 +32,27 @@ export function render({ containerLeft, containerRight, slideData }) {
   d3.select('#us-map-mode-badge').text('D3 Horizontal Bar').style('display', 'block');
 
   const wageData = [
-    { role: "Software Engineer", wage: 145000 },
-    ...slideData.jobsBreakdown.map(d => ({ role: d.category, wage: d.salary }))
-  ];
+    { role: "Software\nEngineer", wage: 145000 },
+    ...slideData.jobsBreakdown.map(d => {
+      let role = d.category;
+      if (role === "Temporary Construction") role = "Temporary\nConstruction";
+      else if (role === "Low-wage Support") role = "Low-wage\nSupport";
+      else if (role === "Skilled Technicians") role = "Skilled\nTechnicians";
+      return { role, wage: d.salary };
+    })
+  ].sort((a, b) => b.wage - a.wage);
 
   const wageChart = new BarChart(containerLeft, {
     xKey: 'wage',
     yKey: 'role',
-    margin: { top: 20, right: 30, bottom: 30, left: 130 },
+    margin: { top: 20, right: 30, bottom: 30, left: 150 },
     colors: ['var(--accent-success)', 'var(--accent-primary)', 'var(--accent-warning)', 'var(--accent-danger)'],
     xTickFormat: d => `$${d3.format(',.0f')(d)}`,
     tooltipFormatter: (d, color) => `
       <div class="d3-tooltip-title">Annual Wage Comparison</div>
       <div class="d3-tooltip-row">
         <span>Role:</span>
-        <span class="d3-tooltip-val" style="color: ${color}">${d.role}</span>
+        <span class="d3-tooltip-val" style="color: ${color}">${d.role.replace('\n', ' ')}</span>
       </div>
       <div class="d3-tooltip-row">
         <span>Average Salary:</span>

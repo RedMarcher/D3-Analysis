@@ -235,7 +235,12 @@ export function render({ containerLeft, geoJson, atlasData, aterioStates, showFa
       <input type="checkbox" id="chk-show-facilities" ${showFacilitiesOverlay ? 'checked' : ''}>
       Overlay 1,479 Real Facilities (IM3)
     </label>
-    <button id="btn-reset-zoom" class="btn-nav" style="padding: 0.25rem 0.625rem; font-size: 0.75rem;">Reset Zoom</button>
+    <div style="display: flex; align-items: center; gap: 0.25rem;">
+      <span style="font-size: 0.75rem; color: var(--text-secondary); margin-right: 0.5rem; opacity: 0.7;">(Scroll to zoom, click and drag to pan)</span>
+      <button id="btn-zoom-in" class="btn-nav" style="padding: 0.25rem 0.5rem; font-size: 0.85rem; font-weight: bold; line-height: 1;" title="Zoom In">+</button>
+      <button id="btn-zoom-out" class="btn-nav" style="padding: 0.25rem 0.5rem; font-size: 0.85rem; font-weight: bold; line-height: 1;" title="Zoom Out">−</button>
+      <button id="btn-reset-zoom" class="btn-nav" style="padding: 0.25rem 0.625rem; font-size: 0.75rem; margin-left: 0.25rem;">Reset</button>
+    </div>
   `);
 
   const usMap = new USMap(containerLeft, geoJson, {
@@ -251,5 +256,7 @@ export function render({ containerLeft, geoJson, atlasData, aterioStates, showFa
     onOverlayToggle(this.checked, usMap);
   });
 
+  d3.select('#btn-zoom-in').on('click', () => usMap.zoomIn());
+  d3.select('#btn-zoom-out').on('click', () => usMap.zoomOut());
   d3.select('#btn-reset-zoom').on('click', () => usMap.resetZoom());
 }

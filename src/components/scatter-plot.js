@@ -120,6 +120,14 @@ export class ScatterPlot {
       .call(this.zoom.transform, d3.zoomIdentity);
   }
 
+  zoomIn() {
+    this.g.transition().duration(300).call(this.zoom.scaleBy, 1.5);
+  }
+
+  zoomOut() {
+    this.g.transition().duration(300).call(this.zoom.scaleBy, 1 / 1.5);
+  }
+
   draw() {
     if (!this.data) return;
 

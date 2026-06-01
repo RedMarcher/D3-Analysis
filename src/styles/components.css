@@ -366,17 +366,6 @@
   filter: brightness(1.2);
 }
 
-/* Donut Slice */
-.donut-slice {
-  stroke: var(--bg-base);
-  stroke-width: 2px;
-  cursor: pointer;
-  transition: transform var(--transition-normal), opacity var(--transition-fast);
-}
-
-.donut-slice:hover {
-  opacity: 0.9;
-}
 
 /* D3 HTML Custom Tooltip */
 .d3-tooltip {
@@ -583,6 +572,7 @@
   flex-direction: column;
   gap: 0.25rem;
   transition: all var(--transition-normal);
+  cursor: pointer;
 }
 
 .job-details-card.active {

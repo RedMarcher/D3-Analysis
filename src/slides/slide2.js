@@ -79,23 +79,27 @@ function buildTimeseries(layoffsData, aterioYearlyMW) {
   // One point per quarter, 2020 Q1 → 2026 Q4
   // DC power linearly interpolated between yearly snapshots
   const rows = [];
+  let cumulativeLayoffs = 0;
   for (let year = 2020; year <= 2026; year++) {
     for (let q = 1; q <= 4; q++) {
       const p0 = yearPower.get(year)     || 0;
       const p1 = yearPower.get(year + 1) || p0;
       const gw = Math.round((p0 + ((q - 1) / 4) * (p1 - p0)) * 10) / 10;
+      const qLayoffs = byQuarter.get(`${year}-${q}`) || 0;
+      cumulativeLayoffs += qLayoffs;
       // Slash format → parsed as local midnight (avoids UTC timezone off-by-one)
       rows.push({
         date:            `${year}/${String((q - 1) * 3 + 1).padStart(2, '0')}/01`,
-        layoffs:         byQuarter.get(`${year}-${q}`) || 0,
+        layoffs:         cumulativeLayoffs,
         datacenterPower: gw,
         isYearStart:     q === 1,
+        _newLayoffs:     qLayoffs,
       });
     }
   }
 
   // Drop trailing quarters where layoffs data doesn't exist yet
-  while (rows.length > 1 && rows[rows.length - 1].layoffs === 0) rows.pop();
+  while (rows.length > 1 && rows[rows.length - 1]._newLayoffs === 0) rows.pop();
 
   // DC power data ends at the last Q1 (yearly snapshot) — null out any
   // partial quarter beyond it so the power line stops at the "year" tick
@@ -214,7 +218,14 @@ export function render({ layoffsData, aterioYearlyMW }) {
   scatter.update(formattedLayoffs);
 
   d3.select('#s2-scatter-controls').html(`
-    <button id="btn-reset-scatter-zoom" class="btn-nav" style="padding: 0.25rem 0.625rem; font-size: 0.75rem;">Reset Zoom</button>
+    <div style="display: flex; align-items: center; gap: 0.25rem;">
+      <span style="font-size: 0.75rem; color: var(--text-secondary); margin-right: 0.5rem; opacity: 0.7;">(Scroll to zoom, click and drag to pan)</span>
+      <button id="btn-scatter-zoom-in" class="btn-nav" style="padding: 0.25rem 0.5rem; font-size: 0.85rem; font-weight: bold; line-height: 1;" title="Zoom In">+</button>
+      <button id="btn-scatter-zoom-out" class="btn-nav" style="padding: 0.25rem 0.5rem; font-size: 0.85rem; font-weight: bold; line-height: 1;" title="Zoom Out">−</button>
+      <button id="btn-reset-scatter-zoom" class="btn-nav" style="padding: 0.25rem 0.625rem; font-size: 0.75rem; margin-left: 0.25rem;">Reset</button>
+    </div>
   `);
+  d3.select('#btn-scatter-zoom-in').on('click', () => scatter.zoomIn());
+  d3.select('#btn-scatter-zoom-out').on('click', () => scatter.zoomOut());
   d3.select('#btn-reset-scatter-zoom').on('click', () => scatter.resetZoom());
 }

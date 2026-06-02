@@ -45,7 +45,7 @@ export class MetricCards {
             const interpolator = d3.interpolate(startVal, endVal);
             return function(t) {
               const v = interpolator(t);
-              valEl.textContent = metric.raw ? Math.round(v).toLocaleString() : formatValue(v);
+              valEl.textContent = (metric.raw ? Math.round(v).toLocaleString() : formatValue(v)) + (metric.suffix || '');
             };
           });
       } else if (valEl && metric.value !== undefined) {

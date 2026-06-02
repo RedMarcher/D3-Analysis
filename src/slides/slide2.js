@@ -23,7 +23,8 @@ function _tickYear() {
       label: `DC Power Capacity (${entry.year})`,
       value: entry.gw,
       trend: "Aterio baseline — GW active load",
-      trendDirection: "up"
+      trendDirection: "up",
+      suffix: ' GW'
     }
   });
   _cycleIdx = (_cycleIdx + 1) % _recentYears.length;
@@ -136,7 +137,7 @@ export function updateKPIs(metrics, { layoffsData, aterioYearlyMW }) {
     },
     peakValue: {
       label: "DC Power Capacity (2026)", value: latest.gw,
-      trend: "Aterio baseline — GW active load", trendDirection: "up"
+      trend: "Aterio verified capacity", trendDirection: "up", suffix: ' GW'
     },
     activeCount: {
       label: "Layoffs per GW", value: perGW,

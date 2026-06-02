@@ -27,7 +27,9 @@ export class LineChart {
       dashedSeries: config.dashedSeries || [],
       noAreaSeries: config.noAreaSeries || [],
       xTickInterval: config.xTickInterval || null,
-      inlineLegend: config.inlineLegend || false
+      inlineLegend: config.inlineLegend || false,
+      seriesDelays: config.seriesDelays || null,
+      seriesDurations: config.seriesDurations || null
     };
 
     this.svg = null;
@@ -415,8 +417,9 @@ export class LineChart {
         .y1(d => yScale(d._y))
         .curve(d3.curveMonotoneX);
 
-      const enterDuration = this._animated ? 500 : 950;
-      const seriesDelay   = (i) => this._animated ? 0 : i * 160;
+      const defaultDur  = this._animated ? 500 : 950;
+      const seriesDelay = (i) => this._animated ? 0 : (this.config.seriesDelays?.[i] ?? i * 160);
+      const seriesDur   = (i) => this._animated ? 500 : (this.config.seriesDurations?.[i] ?? defaultDur);
 
       // Update Line Groups (Enter/Update/Exit)
       const lines = this.linesContainer.selectAll('.line-group')
@@ -457,7 +460,7 @@ export class LineChart {
         .style('display', d => this.config.noAreaSeries.includes(d.key) ? 'none' : null)
         .transition()
         .delay((d, i) => seriesDelay(i))
-        .duration(enterDuration)
+        .duration((d, i) => seriesDur(i))
         .ease(d3.easeCubicOut)
         .style('opacity', null)
         .attr('d', d => areaGenerator(d.values));
@@ -467,7 +470,7 @@ export class LineChart {
         linesMerge.select('.chart-path')
           .transition()
           .delay((d, i) => seriesDelay(i))
-          .duration(enterDuration)
+          .duration((d, i) => seriesDur(i))
           .ease(d3.easeLinear)
           .attr('stroke-dashoffset', 0)
           .on('end', function(event, d) {
@@ -490,7 +493,7 @@ export class LineChart {
         this.nestedData.forEach((s, si) => {
           s.values.forEach((v, vi) => {
             dotDelayMap.set(`${v[this.config.groupKey]}-${+v._x}`,
-              seriesDelay(si) + (vi / Math.max(s.values.length - 1, 1)) * enterDuration);
+              seriesDelay(si) + (vi / Math.max(s.values.length - 1, 1)) * seriesDur(si));
           });
         });
       }

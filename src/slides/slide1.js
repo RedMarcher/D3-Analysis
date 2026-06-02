@@ -67,9 +67,12 @@ function _clearTimers() {
 
 export function cleanup() {
   _clearTimers();
-  document.querySelector('.charts-grid').style.alignItems = '';
-  const badge = document.getElementById('map-source-badge');
-  if (badge) badge.style.display = 'none';
+  const grid = document.querySelector('.charts-grid');
+  grid.classList.remove('shrink-rows', 's1-mode');
+  document.getElementById('supporting-chart-card').classList.remove('hidden');
+  document.getElementById('map-detail-panel').classList.remove('active');
+  const badge = document.getElementById('map-overlay-source');
+  if (badge) badge.classList.remove('visible');
 }
 
 export function updateKPIs(metrics, { aterioStates }) {
@@ -198,41 +201,37 @@ function resetDetailPanel() {
 }
 
 function setSourceBadge(isOverlay) {
-  const badge = document.getElementById('map-source-badge');
+  const badge = document.getElementById('map-overlay-source');
   if (!badge) return;
   if (isOverlay) {
-    badge.textContent = 'Facility dots: IM3 Atlas v2026 · State data: Aterio';
+    badge.textContent = 'Source: IM3 Atlas v2026 + Aterio';
     badge.title = 'Dots from IM3 (1,479 coords, no AK/HI). Bubble sizes from Aterio (1,963 active + 4,138 pipeline).';
-    badge.style.color = 'var(--accent-secondary)';
+    badge.style.color = '';
   } else {
-    badge.textContent = 'Aterio US Data Centers · May 2026';
+    badge.textContent = 'Source: Aterio US Data Centers · May 2026';
     badge.title = 'Per-state active and pipeline counts from Aterio (aterio.io)';
-    badge.style.color = 'var(--accent-primary)';
+    badge.style.color = '';
   }
 }
 
 export function render({ containerLeft, geoJson, atlasData, aterioStates, showFacilitiesOverlay, onOverlayToggle }) {
   panelLocked = false;
 
-  document.querySelector('.charts-grid').style.gridTemplateColumns = '1fr';
-  document.querySelector('.charts-grid').style.alignItems = 'start';
-  d3.select('#supporting-chart-card').style('display', 'none');
-  d3.select('#map-detail-panel').style('display', 'flex');
-  d3.select('#container-us-map').style('height', null).style('min-height', null);
+  const grid = document.querySelector('.charts-grid');
+  grid.classList.add('s1-mode', 'shrink-rows');
+  document.getElementById('supporting-chart-card').classList.add('hidden');
+  document.getElementById('map-detail-panel').classList.add('active');
 
   document.getElementById('us-map-title').textContent = "U.S. Data Center Geographic Concentration";
-  d3.select('#us-map-mode-badge').style('display', 'none');
 
   const titleDiv = document.querySelector('#us-map-mode-badge').parentElement;
-  if (!document.getElementById('map-source-badge')) {
+  if (!document.getElementById('map-overlay-source')) {
     const sourceBadge = document.createElement('span');
-    sourceBadge.id = 'map-source-badge';
+    sourceBadge.id = 'map-overlay-source';
     sourceBadge.className = 'map-source-badge';
     titleDiv.appendChild(sourceBadge);
   }
-  const badge = document.getElementById('map-source-badge');
-  if (badge) badge.style.display = 'inline-flex'; // matching common badge styles
-  
+  document.getElementById('map-overlay-source').classList.add('visible');
   setSourceBadge(showFacilitiesOverlay);
 
   d3.select('#us-map-controls').html(`

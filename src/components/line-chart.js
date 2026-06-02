@@ -23,7 +23,11 @@ export class LineChart {
       yLabel: config.yLabel || 'Value',
       margin: config.margin || { top: 30, right: 65, bottom: 40, left: 55 },
       colors: config.colors || d3.schemeTableau10,
-      isDualAxis: config.isDualAxis || false
+      isDualAxis: config.isDualAxis || false,
+      dashedSeries: config.dashedSeries || [],
+      noAreaSeries: config.noAreaSeries || [],
+      xTickInterval: config.xTickInterval || null,
+      inlineLegend: config.inlineLegend || false
     };
 
     this.svg = null;
@@ -75,7 +79,8 @@ export class LineChart {
       .style('opacity', 0);
 
     this.linesContainer = this.g.append('g').attr('class', 'lines-group');
-    this.dotsContainer = this.g.append('g').attr('class', 'dots-group');
+    this.dotsContainer  = this.g.append('g').attr('class', 'dots-group');
+    this.legendGroup    = this.g.append('g').attr('class', 'inline-legend-group');
 
     // Dynamic color setup
     this.colorScale = d3.scaleOrdinal(this.config.colors);
@@ -147,12 +152,13 @@ export class LineChart {
 
     xScale.domain(d3.extent(parsedData, d => d._x));
 
-    // Position X Axis — quarterly ticks, year labels only at Jan 1
+    // Position X Axis — interval configurable, year labels only on Jan 1
+    const xTickInterval = this.config.xTickInterval || d3.timeMonth.every(3);
     this.xAxisGroup
       .attr('transform', `translate(0, ${innerHeight})`)
       .transition().duration(500)
       .call(d3.axisBottom(xScale)
-        .ticks(d3.timeMonth.every(3))
+        .ticks(xTickInterval)
         .tickFormat(d => d.getMonth() === 0 ? d3.timeFormat('%Y')(d) : '')
         .tickSizeOuter(0));
 
@@ -416,12 +422,14 @@ export class LineChart {
       // Paths
       linesEnter.append('path')
         .attr('class', 'chart-path')
-        .style('stroke', d => this.colorScale(d.key));
+        .style('stroke', d => this.colorScale(d.key))
+        .style('stroke-dasharray', d => this.config.dashedSeries.includes(d.key) ? '6 4' : null);
 
       const linesMerge = linesEnter.merge(lines);
 
       // Transition Area fills
       linesMerge.select('.chart-area')
+        .style('display', d => this.config.noAreaSeries.includes(d.key) ? 'none' : null)
         .transition().duration(500)
         .attr('d', d => areaGenerator(d.values));
 
@@ -466,10 +474,11 @@ export class LineChart {
             ? d3.timeFormat('%B %Y')(d._x)
             : `${self.config.xKey}: ${d[self.config.xKey]}`;
 
+          const xLabel = self.config.xScaleType === 'time' ? 'Year' : (self.config.xKey || 'X');
           const htmlContent = `
             <div class="d3-tooltip-title">${d[self.config.groupKey]}</div>
             <div class="d3-tooltip-row">
-              <span>Dimension:</span>
+              <span>${xLabel}:</span>
               <span class="d3-tooltip-val">${xString}</span>
             </div>
             <div class="d3-tooltip-row">
@@ -486,8 +495,57 @@ export class LineChart {
           tooltip.hide();
         });
 
-      this.drawLegend();
+      if (this.config.inlineLegend) {
+        this.drawInlineLegend(innerWidth);
+      } else {
+        this.drawLegend();
+      }
     }
+  }
+
+  drawInlineLegend(innerWidth) {
+    this.legendGroup.selectAll('*').remove();
+    const keys = this.colorScale.domain();
+    const lineW = 18;
+    const rowH = 18;
+    const pad = 10;
+    const bgPad = 7;
+
+    // Placeholder rect — sized after items are drawn
+    const bg = this.legendGroup.append('rect')
+      .attr('rx', 4)
+      .style('fill', 'rgba(10, 12, 22, 0.78)')
+      .style('stroke', 'rgba(255,255,255,0.07)')
+      .style('stroke-width', 1);
+
+    const itemsGroup = this.legendGroup.append('g')
+      .attr('transform', `translate(${bgPad}, ${bgPad})`);
+
+    keys.forEach((key, i) => {
+      const row = itemsGroup.append('g')
+        .attr('transform', `translate(0, ${i * rowH})`);
+
+      row.append('line')
+        .attr('x1', 0).attr('x2', lineW).attr('y1', 6).attr('y2', 6)
+        .style('stroke', this.colorScale(key))
+        .style('stroke-width', 2.5)
+        .style('stroke-dasharray', this.config.dashedSeries.includes(key) ? '6 4' : null);
+
+      row.append('text')
+        .attr('x', lineW + 5).attr('y', 10)
+        .attr('fill', 'var(--text-secondary)')
+        .attr('font-size', '0.65rem')
+        .attr('font-family', 'var(--font-family-body)')
+        .text(key);
+    });
+
+    const bbox = itemsGroup.node().getBBox();
+    const bw = bbox.width + bgPad * 2;
+    const bh = bbox.height + bgPad * 2;
+    bg.attr('width', bw).attr('height', bh);
+
+    this.legendGroup.attr('transform',
+      `translate(${pad}, ${pad})`);
   }
 
   /**

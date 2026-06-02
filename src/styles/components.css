@@ -92,6 +92,7 @@
   min-height: 200px;
 }
 
+
 .chart-container-wrapper svg {
   width: 100%;
   height: 100%;
@@ -256,11 +257,45 @@
   opacity: 0.8;
   cursor: default;
   letter-spacing: 0.3px;
+  color: var(--text-secondary);
 }
 
 .map-source-badge::before {
-  content: 'ⓘ ';
+  content: '\24D8\00A0\00A0';
   opacity: 0.6;
+}
+
+/* ── Slide layout visibility ─────────────────────────────────────────────── */
+
+/* Mode badges hidden by default — each slide shows its own */
+#us-map-mode-badge,
+#supporting-chart-mode-badge,
+#map-overlay-source {
+  display: none;
+}
+#us-map-mode-badge.visible,
+#supporting-chart-mode-badge.visible {
+  display: block;
+}
+#map-overlay-source.visible {
+  display: inline-flex;
+}
+
+/* Map detail panel hidden by default — slide 1 activates it */
+#map-detail-panel {
+  display: none;
+}
+#map-detail-panel.active {
+  display: flex;
+}
+
+/* Supporting chart card layout */
+#supporting-chart-card {
+  display: flex;
+  flex-direction: column;
+}
+#supporting-chart-card.hidden {
+  display: none;
 }
 
 /* Map Detail Panel */

@@ -100,10 +100,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Reset chart containers
-    d3.select('#container-us-map').style('height', null).style('min-height', null).html('');
-    d3.select('#supporting-chart-card').style('display', null);
-    d3.select('#container-supporting-chart').style('display', null).style('height', null).html('');
-    d3.select('#map-detail-panel').style('display', 'none');
+    d3.select('#container-us-map').html('');
+    d3.select('#container-supporting-chart').html('');
     d3.select('#us-map-controls').html('');
     d3.select('#supporting-chart-controls').html('');
     const legendContainer = document.getElementById('legend-supporting-chart');

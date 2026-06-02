@@ -188,7 +188,8 @@ body::after {
 
 /* ── Slide 2 custom layout ─────────────────────────── */
 .dashboard-grid,
-#slide-2-layout {
+#slide-2-layout,
+#slide-3-layout {
   flex: 1;
   min-height: 800px;
 }
@@ -238,6 +239,52 @@ body::after {
   padding: 1.5rem;
 }
 
+/* ── Slide 3 custom layout ─────────────────────────── */
+#slide-3-layout {
+  display: none;
+  grid-template-columns: 7fr 13fr 4fr;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.s3-sidebar,
+.s3-charts,
+.s3-kpis {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.s3-narrative {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.5rem;
+}
+
+.s3-chart-card {
+  display: flex;
+  flex-direction: column;
+}
+
+#s3-container-left,
+#s3-container-right {
+  height: 320px;
+}
+
+/* Charts grid column layout per slide */
+.charts-grid.s1-mode { grid-template-columns: 1fr; }
+
+/* Shrink-row mode: cards hug their content height but fill full column width */
+.charts-grid.shrink-rows {
+  align-items: start;
+}
+.charts-grid.shrink-rows > * {
+  width: 100%;
+  align-self: start;
+}
+
 /* Responsive Overrides */
 @media (max-width: 1200px) {
   .dashboard-grid {
@@ -258,20 +305,76 @@ body::after {
   }
 }
 
+/* ── Tablet: collapse slide 2 & 3 custom layouts ─────────── */
+@media (max-width: 1024px) {
+  #slide-2-layout,
+  #slide-3-layout {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+
+  /* Slide 2: charts no longer flex-grow, give them explicit heights */
+  .s2-chart-card {
+    flex: none;
+  }
+  #s2-container-line {
+    height: 280px;
+    flex: none;
+  }
+
+  /* Slide 3: KPI column becomes a horizontal row when stacked */
+  .s3-kpis {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .s3-kpis .metric-card {
+    flex: 1;
+    min-width: 140px;
+  }
+
+  #s3-container-left,
+  #s3-container-right {
+    height: 260px;
+  }
+}
+
+/* ── Phone: further tighten heights ──────────────────────── */
 @media (max-width: 768px) {
   .metrics-row {
     grid-template-columns: 1fr;
   }
-  
+
   .app-header, .slideshow-footer {
     flex-direction: column;
     align-items: stretch;
     gap: 1rem;
     text-align: center;
   }
-  
+
   .slide-nav-controls {
     justify-content: center;
+  }
+
+  /* Slide 2 */
+  .s2-kpi-row {
+    grid-template-columns: 1fr;
+  }
+  #s2-container-line {
+    height: 220px;
+  }
+  #s2-container-scatter {
+    height: 260px;
+  }
+
+  /* Slide 3 */
+  #s3-container-left,
+  #s3-container-right {
+    height: 220px;
+  }
+
+  /* Slide 3 KPIs: stack back to column on very small screens */
+  .s3-kpis {
+    flex-direction: column;
   }
 }
 
@@ -286,28 +389,6 @@ body::after {
 }
 .slide-1-mode .charts-grid {
   order: 1;
-}
-
-/* Slide 3 - Vertical Metrics on Right, Stacked Charts on Left */
-.slide-3-mode {
-  flex-direction: row;
-}
-.slide-3-mode .charts-grid {
-  order: 1;
-  flex: 1;
-  display: flex !important;
-  flex-direction: column; /* Stack the two charts */
-}
-.slide-3-mode .charts-grid > * {
-  flex: 1;
-  min-height: 300px;
-}
-.slide-3-mode .metrics-row {
-  order: 2;
-  display: flex;
-  flex-direction: column;
-  width: 260px;
-  flex: 0 0 260px;
 }
 
 /* Slide 4 - Horizontal Metrics on Bottom, Side-by-Side Charts on Top */

@@ -101,9 +101,7 @@
               style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
               <div style="display: flex; flex-direction: column;">
                 <span id="us-map-title">U.S. Data Center Regional Concentration</span>
-                <span id="us-map-mode-badge"
-                  style="font-size: 0.8125rem; font-weight: 700; color: var(--accent-primary); font-family: var(--font-family-title);">Albers
-                  USA</span>
+                <span id="us-map-mode-badge" class="map-source-badge"></span>
               </div>
               <div id="us-map-controls" class="map-controls-group"></div>
             </div>
@@ -130,8 +128,7 @@
           </div>
 
           <!-- Right Column: Supporting Context Chart -->
-          <div id="supporting-chart-card" class="glass-card"
-            style="position: relative; display: flex; flex-direction: column;">
+          <div id="supporting-chart-card" class="glass-card">
             <div id="loader-supporting-chart" class="skeleton-loader">
               <div class="skeleton-spinner"></div>
               <span class="control-label">Synthesizing Connotation Visuals...</span>
@@ -140,14 +137,12 @@
               style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
               <div style="display: flex; flex-direction: column;">
                 <span id="supporting-chart-title">Visual Context Breakdown</span>
-                <span id="supporting-chart-mode-badge"
-                  style="font-size: 0.8125rem; font-weight: 700; color: var(--accent-secondary); font-family: var(--font-family-title);">D3
-                  Chart</span>
+                <span id="supporting-chart-mode-badge" class="map-source-badge"></span>
               </div>
               <div id="supporting-chart-controls" class="chart-controls-group"></div>
             </div>
             <!-- Bounding container for supporting D3 charts -->
-            <div class="chart-container-wrapper" id="container-supporting-chart" style="flex-grow: 1; height: 380px;">
+            <div class="chart-container-wrapper" id="container-supporting-chart">
             </div>
             <div class="legend-container" id="legend-supporting-chart"></div>
           </div>
@@ -202,9 +197,7 @@
           <div class="glass-card-title" style="display:flex; justify-content:space-between; align-items:center;">
             <div style="display:flex; flex-direction:column;">
               <span>U.S. Tech Layoffs vs. Data Center Power Capacity</span>
-              <span
-                style="font-size:0.8125rem; font-weight:700; color:var(--accent-primary); font-family:var(--font-family-title);">Aterio
-                + layoffs.fyi</span>
+              <span class="map-source-badge">Source: Aterio + layoffs.fyi</span>
             </div>
           </div>
           <div class="chart-container-wrapper" id="s2-container-line" style="flex:1; min-height:0;"></div>
@@ -216,8 +209,7 @@
             style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
             <div style="display:flex; flex-direction:column;">
               <span>Layoff Events by Company &amp; Funding Stage</span>
-              <span
-                style="font-size:0.8125rem; font-weight:700; color:var(--accent-secondary); font-family:var(--font-family-title);">layoffs.fyi</span>
+              <span class="map-source-badge">Source: layoffs.fyi</span>
             </div>
             <div id="s2-scatter-controls" class="chart-controls-group"></div>
           </div>
@@ -226,6 +218,76 @@
         </div>
 
       </div>
+    </div>
+
+    <!-- Slide 3 Custom Layout (shown only when slide 3 is active) -->
+    <div id="slide-3-layout">
+
+      <!-- Left column: narrative -->
+      <div class="s3-sidebar">
+
+        <div class="glass-card s3-narrative" id="s3-narrative-card">
+          <div class="narrative-header">
+            <span class="narrative-slide-number" id="s3-narrative-lbl"></span>
+            <h2 class="narrative-title" id="s3-narrative-title"></h2>
+          </div>
+          <div class="narrative-body" id="s3-narrative-body"></div>
+          <div class="takeaway-card" id="s3-takeaway-card">
+            <div class="takeaway-title" id="s3-takeaway-title"></div>
+            <div class="takeaway-text" id="s3-takeaway-text"></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Middle column: two stacked charts -->
+      <div class="s3-charts">
+
+        <div class="glass-card s3-chart-card">
+          <div class="glass-card-title" style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="display:flex; flex-direction:column;">
+              <span>U.S. Grid Total vs. Data Center Demand</span>
+              <span class="map-source-badge">Source: Our World in Data + Aterio</span>
+            </div>
+          </div>
+          <div class="chart-container-wrapper" id="s3-container-left"></div>
+        </div>
+
+        <div class="glass-card s3-chart-card">
+          <div class="glass-card-title" style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="display:flex; flex-direction:column;">
+              <span>U.S. Grid Generation by Source (2000–Present)</span>
+              <span class="map-source-badge">Source: Our World in Data / BP</span>
+            </div>
+          </div>
+          <div class="chart-container-wrapper" id="s3-container-right"></div>
+        </div>
+
+      </div>
+
+      <!-- Right column: KPI cards -->
+      <div class="s3-kpis">
+
+        <div class="glass-card metric-card" id="kpi-s3-1">
+          <span class="metric-label">Fossil Fuel Draw</span>
+          <span class="metric-value">--</span>
+          <span class="metric-trend neutral"><span>--</span></span>
+        </div>
+
+        <div class="glass-card metric-card" id="kpi-s3-2">
+          <span class="metric-label">Clean Green Ratio</span>
+          <span class="metric-value">--</span>
+          <span class="metric-trend up"><span>--</span></span>
+        </div>
+
+        <div class="glass-card metric-card" id="kpi-s3-3">
+          <span class="metric-label">U.S. Grid Size</span>
+          <span class="metric-value">--</span>
+          <span class="metric-trend neutral"><span>--</span></span>
+        </div>
+
+      </div>
+
     </div>
 
     <!-- Slideshow Navigation Footer -->

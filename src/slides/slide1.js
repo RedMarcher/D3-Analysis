@@ -7,9 +7,9 @@ export const narrative = {
   body: `
     <p>The U.S. data center footprint is expanding rapidly, driven by AI and cloud infrastructure demands. This exhibit illustrates where the physical infrastructure is concentrated — and where it is headed.</p>
     <ul class="narrative-bullets">
-      <li><strong>Virginia, Texas, and California</strong> lead in active verified facilities, with Virginia more than doubling the next state.</li>
-      <li><strong>Pipeline dwarfs reality:</strong> 4,138 facilities are planned or under construction — more than double the 1,963 currently active.</li>
-      <li><strong>Amazon &amp; Microsoft</strong> dominate the landscape, controlling the majority of capacity in every major hub state.</li>
+      <li><strong>Geographic Leaders:</strong> Virginia, Texas, and California lead in active verified facilities, with Virginia more than doubling the next state.</li>
+      <li><strong>Expansion Surge:</strong> 4,138 facilities are planned or under construction — more than double the 1,963 currently active.</li>
+      <li><strong>Corporate Gatekeepers:</strong> Amazon and Microsoft dominate the landscape, controlling the majority of capacity in every major hub state.</li>
     </ul>
   `,
   takeawayTitle: "Conclusive Takeaway: The Illusion of Scale",

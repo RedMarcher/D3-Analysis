@@ -8,7 +8,7 @@ export const narrative = {
   body: `
     <p>Proponents claim data centers create local GDP and rich jobs. In reality, the labor force is highly skewed towards low-wage and temporary construction roles.</p>
     <ul class="narrative-bullets">
-      <li><strong>Temporary Boom:</strong> 80% of jobs are temporary construction roles that disappear after 12-18 months.</li>
+      <li><strong>Temporary Boom:</strong> 80% of jobs are temporary construction roles that disappear after 12–18 months.</li>
       <li><strong>Low-Wage Custodial:</strong> 15% are permanent but low-paying security and groundkeeper jobs averaging $38,000/yr.</li>
       <li><strong>Technician Disparity:</strong> Only 5% are skilled technician roles, and their wages are 55% lower than software engineering positions ($65k vs $145k).</li>
     </ul>
@@ -16,6 +16,12 @@ export const narrative = {
   takeawayTitle: "Conclusive Takeaway: A Local Net Economic Drain",
   takeawayText: "Data centers contribute to corporate GDP but represent a net local drain. They create few permanent, high-paying jobs, consume vast public resources, and do not enrich local labor workforces, debunking the economic benefit myth."
 };
+
+export function cleanup() {
+  document.querySelector('.charts-grid').style.gridTemplateColumns = '';
+  d3.select('#us-map-mode-badge').style('display', null).style('color', null).style('font-size', null);
+  d3.select('#supporting-chart-mode-badge').style('display', null).style('color', null).style('font-size', null);
+}
 
 export function updateKPIs(metrics) {
   metrics.update({

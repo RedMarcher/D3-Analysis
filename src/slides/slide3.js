@@ -1,6 +1,7 @@
 import * as d3 from 'd3';
 import { LineChart } from '../components/line-chart.js';
 import { MetricCards } from '../components/metric-cards.js';
+import { animateNarrative } from '../utils/animate-narrative.js';
 
 const _s3Metrics = new MetricCards({
   overallTotal: 'kpi-s3-1',
@@ -14,7 +15,7 @@ export const narrative = {
   body: `
     <p>Data center electricity demand is growing exponentially — while the grid it draws from has stayed relatively flat and remains heavily fossil-fueled.</p>
     <ul class="narrative-bullets">
-      <li><strong>Catching Up Fast:</strong> U.S. grid output has hovered near 4,000 TWh/year for two decades. Data center demand, once negligible, is now on a trajectory to consume over 2,000 TWh/year by 2030 — nearly half the current grid.</li>
+      <li><strong>Catching Up Fast:</strong> U.S. grid output has hovered near 4,000 TWh/year for two decades. Data center demand, once negligible, could reach over 2,000 TWh/year by 2030 under full pipeline buildout — nearly half the current grid.</li>
       <li><strong>Still a Fossil Grid:</strong> The source breakdown shows coal declining, but natural gas remains the dominant fuel. Solar and wind are rising yet still a fraction — meaning most new data center load is served by fossil fuels today.</li>
       <li><strong>Baseload, Not Peaky:</strong> Unlike homes, data centers run 24/7 at constant draw. That steady baseload demand keeps gas plants running continuously and undermines the economics of intermittent renewables.</li>
     </ul>
@@ -70,6 +71,7 @@ export function render({ energyData, aterioYearlyMW }) {
   document.getElementById('s3-narrative-lbl').textContent = narrative.lbl;
   document.getElementById('s3-narrative-title').textContent = narrative.title;
   document.getElementById('s3-narrative-body').innerHTML = narrative.body;
+  animateNarrative(document.getElementById('s3-narrative-body'));
   document.getElementById('s3-takeaway-title').textContent = narrative.takeawayTitle;
   document.getElementById('s3-takeaway-text').textContent = narrative.takeawayText;
 

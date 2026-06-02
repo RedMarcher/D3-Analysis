@@ -1,5 +1,6 @@
 import * as d3 from 'd3';
 import { MetricCards } from './components/metric-cards.js';
+import { animateNarrative } from './utils/animate-narrative.js';
 import * as slide1 from './slides/slide1.js';
 import * as slide2 from './slides/slide2.js';
 import * as slide3 from './slides/slide3.js';
@@ -87,6 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('narrative-slide-lbl').textContent = slide.narrative.lbl;
     document.getElementById('narrative-slide-title').textContent = slide.narrative.title;
     document.getElementById('narrative-slide-body').innerHTML = slide.narrative.body;
+    animateNarrative(document.getElementById('narrative-slide-body'));
     document.getElementById('narrative-takeaway-title').textContent = slide.narrative.takeawayTitle;
     document.getElementById('narrative-takeaway-text').textContent = slide.narrative.takeawayText;
 

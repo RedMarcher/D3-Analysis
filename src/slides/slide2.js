@@ -2,6 +2,7 @@ import * as d3 from 'd3';
 import { LineChart } from '../components/line-chart.js';
 import { ScatterPlot } from '../components/scatter-plot.js';
 import { MetricCards } from '../components/metric-cards.js';
+import { animateNarrative } from '../utils/animate-narrative.js';
 
 let _cycleInterval = null;
 let _cycleMetrics = null;
@@ -44,7 +45,7 @@ export const narrative = {
     <ul class="narrative-bullets">
       <li><strong>Diverging trends:</strong> From 2020 to 2026, U.S. data center power capacity tripled from 19 GW to 59 GW — while tech layoffs surged past 655,000 cumulative cuts.</li>
       <li><strong>Automated over human:</strong> Capital expenditure is skewed towards high-margin computing assets rather than preserving stable human employment.</li>
-      <li><strong>Big tech leads recent cuts:</strong> The scatter's top-right — largest and most recent events — is dominated by Post-IPO giants: Oracle (30K, Mar 2026), Intel (22K), Amazon (16K), Tesla (14K), Dell (11K), and Meta, Microsoft, Cisco, and PayPal all posting multi-thousand cuts since 2024. These are not struggling startups — they are profitable, publicly traded companies expanding data center infrastructure while simultaneously shedding workforce.</li>
+      <li><strong>Big tech leads recent cuts:</strong> The scatter's top-right — largest and most recent events — is dominated by Post-IPO giants: Oracle (30K, Mar 2026), Intel (22K), Amazon (16K), Tesla (14K), Dell (11K), and Meta, Microsoft, Cisco, and PayPal all posting multi-thousand cuts since 2024. These are not struggling startups — they are profitable, publicly traded companies shedding workforce while expanding data center infrastructure.</li>
     </ul>
   `,
   takeawayTitle: "Conclusive Takeaway: Automated Capital Gain",
@@ -165,18 +166,21 @@ export function render({ layoffsData, aterioYearlyMW }) {
   document.getElementById('s2-narrative-lbl').textContent = narrative.lbl;
   document.getElementById('s2-narrative-title').textContent = narrative.title;
   document.getElementById('s2-narrative-body').innerHTML = narrative.body;
+  animateNarrative(document.getElementById('s2-narrative-body'));
   document.getElementById('s2-takeaway-title').textContent = narrative.takeawayTitle;
   document.getElementById('s2-takeaway-text').textContent = narrative.takeawayText;
 
-  // Line chart
+  // Line chart — deferred one frame so flex layout resolves before getTotalLength()
   const timeseries = buildTimeseries(layoffsData, aterioYearlyMW);
-  const lineChart = new LineChart('#s2-container-line', {
-    xKey: 'date',
-    yKey: 'layoffs',
-    xScaleType: 'time',
-    isDualAxis: true
+  requestAnimationFrame(() => {
+    const lineChart = new LineChart('#s2-container-line', {
+      xKey: 'date',
+      yKey: 'layoffs',
+      xScaleType: 'time',
+      isDualAxis: true
+    });
+    lineChart.update(timeseries);
   });
-  lineChart.update(timeseries);
 
   // Scatter plot
   const STAGE_ORDER = ['Seed', 'Series A', 'Series B', 'Series C', 'Series D+', 'Acquired', 'Private Equity', 'Post-IPO'];

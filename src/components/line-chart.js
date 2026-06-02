@@ -137,6 +137,7 @@ export class LineChart {
     // Get current dimensions
     const { margin, xScaleType, yLabel, isDualAxis } = this.config;
     const { width, height, innerWidth, innerHeight } = getDimensions(this.container, margin);
+    if (innerWidth <= 0 || innerHeight <= 0) return; // defer to ResizeObserver once layout is ready
     this._lastWidth  = width;
     this._lastHeight = height;
 
@@ -240,66 +241,70 @@ export class LineChart {
       const enterDelay    = this._animated ? 0 : 180;
       const enterEase     = d3.easeCubicOut;
 
-      // Flat generators — all y at baseline, used as animation start state
-      const flatLineLayoffs = d3.line()
-        .x(d => xScale(d._x)).y(innerHeight).curve(d3.curveMonotoneX);
-      const flatAreaLayoffs = d3.area()
-        .x(d => xScale(d._x)).y0(innerHeight).y1(innerHeight).curve(d3.curveMonotoneX);
-      const flatLinePower = d3.line()
-        .defined(d => d.datacenterPower != null)
-        .x(d => xScale(d._x)).y(innerHeight).curve(d3.curveMonotoneX);
-      const flatAreaPower = d3.area()
-        .defined(d => d.datacenterPower != null)
-        .x(d => xScale(d._x)).y0(innerHeight).y1(innerHeight).curve(d3.curveMonotoneX);
-
       // Draw Curve 1: Tech Layoffs (Coral red)
       const layoffsGroup = this.linesContainer.append('g').attr('class', 'line-group');
       layoffsGroup.append('path')
         .attr('class', 'chart-area')
-        .attr('d', flatAreaLayoffs(parsedData))
+        .attr('d', areaLayoffs(parsedData))
         .style('fill', 'var(--accent-danger)')
-        .style('opacity', 0.12)
+        .style('opacity', this._animated ? 0.12 : 0)
         .transition().duration(enterDuration).ease(enterEase)
-        .attr('d', areaLayoffs(parsedData));
-      layoffsGroup.append('path')
+        .style('opacity', 0.12);
+      const layoffsLinePath = layoffsGroup.append('path')
         .attr('class', 'chart-path')
-        .attr('d', flatLineLayoffs(parsedData))
-        .style('stroke', 'var(--accent-danger)')
-        .transition().duration(enterDuration).ease(enterEase)
-        .attr('d', lineLayoffs(parsedData));
+        .attr('d', lineLayoffs(parsedData))
+        .style('stroke', 'var(--accent-danger)');
+      if (!this._animated) {
+        const lLen = layoffsLinePath.node().getTotalLength();
+        layoffsLinePath
+          .attr('stroke-dasharray', `${lLen} ${lLen}`)
+          .attr('stroke-dashoffset', lLen)
+          .transition().duration(enterDuration).ease(d3.easeLinear)
+          .attr('stroke-dashoffset', 0)
+          .on('end', function() { d3.select(this).attr('stroke-dasharray', null).attr('stroke-dashoffset', null); });
+      }
 
       // Draw Curve 2: Data Center Power GW (Cyber blue) — delayed slightly
       const powerGroup = this.linesContainer.append('g').attr('class', 'line-group');
       powerGroup.append('path')
         .attr('class', 'chart-area')
-        .attr('d', flatAreaPower(parsedData))
+        .attr('d', areaPower(parsedData))
         .style('fill', 'var(--accent-primary)')
-        .style('opacity', 0.12)
+        .style('opacity', this._animated ? 0.12 : 0)
         .transition().delay(enterDelay).duration(enterDuration).ease(enterEase)
-        .attr('d', areaPower(parsedData));
-      powerGroup.append('path')
+        .style('opacity', 0.12);
+      const powerLinePath = powerGroup.append('path')
         .attr('class', 'chart-path')
-        .attr('d', flatLinePower(parsedData))
-        .style('stroke', 'var(--accent-primary)')
-        .transition().delay(enterDelay).duration(enterDuration).ease(enterEase)
-        .attr('d', linePower(parsedData));
+        .attr('d', linePower(parsedData))
+        .style('stroke', 'var(--accent-primary)');
+      if (!this._animated) {
+        const pLen = powerLinePath.node().getTotalLength();
+        powerLinePath
+          .attr('stroke-dasharray', `${pLen} ${pLen}`)
+          .attr('stroke-dashoffset', pLen)
+          .transition().delay(enterDelay).duration(enterDuration).ease(d3.easeLinear)
+          .attr('stroke-dashoffset', 0)
+          .on('end', function() { d3.select(this).attr('stroke-dasharray', null).attr('stroke-dashoffset', null); });
+      }
 
       // Draw interactive dots
       const self = this;
 
-      // Layoffs Dots
+      // Layoffs Dots — stagger left-to-right matching line draw speed
+      const nLayoffs = parsedData.length;
       this.dotsContainer.selectAll('.chart-node-layoffs')
         .data(parsedData)
         .enter().append('circle')
         .attr('class', 'chart-node chart-node-layoffs')
         .attr('r', 0)
         .attr('cx', d => xScale(d._x))
-        .attr('cy', this._animated ? d => yScaleLeft(+d.layoffs) : innerHeight)
+        .attr('cy', d => yScaleLeft(+d.layoffs))
         .style('fill', 'var(--bg-base)')
         .style('stroke', 'var(--accent-danger)')
-        .transition().duration(enterDuration).ease(enterEase)
-        .attr('r', 4.5)
-        .attr('cy', d => yScaleLeft(+d.layoffs));
+        .transition()
+        .delay((d, i) => this._animated ? 0 : (i / Math.max(nLayoffs - 1, 1)) * enterDuration)
+        .duration(250).ease(d3.easeCubicOut)
+        .attr('r', 4.5);
 
       this.dotsContainer.selectAll('.chart-node-layoffs')
         .on('mouseover', function(event, d) {
@@ -324,20 +329,22 @@ export class LineChart {
           tooltip.hide();
         });
 
-      // Power Dots — yearly snapshots only (DC power data is annual)
+      // Power Dots — yearly snapshots, staggered left-to-right after line delay
       const powerDotData = parsedData.filter(d => d.isYearStart && d.datacenterPower != null);
+      const nPower = powerDotData.length;
       this.dotsContainer.selectAll('.chart-node-power')
         .data(powerDotData)
         .enter().append('circle')
         .attr('class', 'chart-node chart-node-power')
         .attr('r', 0)
         .attr('cx', d => xScale(d._x))
-        .attr('cy', this._animated ? d => yScaleRight(+d.datacenterPower) : innerHeight)
+        .attr('cy', d => yScaleRight(+d.datacenterPower))
         .style('fill', 'var(--bg-base)')
         .style('stroke', 'var(--accent-primary)')
-        .transition().delay(enterDelay).duration(enterDuration).ease(enterEase)
-        .attr('r', 4.5)
-        .attr('cy', d => yScaleRight(+d.datacenterPower));
+        .transition()
+        .delay((d, i) => this._animated ? 0 : enterDelay + (i / Math.max(nPower - 1, 1)) * enterDuration)
+        .duration(250).ease(d3.easeCubicOut)
+        .attr('r', 4.5);
 
       this.dotsContainer.selectAll('.chart-node-power')
         .on('mouseover', function(event, d) {
@@ -368,6 +375,7 @@ export class LineChart {
 
     } else {
       // STANDARD SINGLE AXIS MODE
+      const self = this;
       this.yAxisRightGroup.style('opacity', 0);
       this.yLabelRightText.style('opacity', 0);
 
@@ -407,6 +415,9 @@ export class LineChart {
         .y1(d => yScale(d._y))
         .curve(d3.curveMonotoneX);
 
+      const enterDuration = this._animated ? 500 : 950;
+      const seriesDelay   = (i) => this._animated ? 0 : i * 160;
+
       // Update Line Groups (Enter/Update/Exit)
       const lines = this.linesContainer.selectAll('.line-group')
         .data(this.nestedData, d => d.key);
@@ -414,33 +425,76 @@ export class LineChart {
       const linesEnter = lines.enter().append('g')
         .attr('class', 'line-group');
 
-      // Fills
+      // Fills — set actual shape immediately, fade in on first load
       linesEnter.append('path')
         .attr('class', 'chart-area')
-        .style('fill', d => this.colorScale(d.key));
+        .style('fill', d => this.colorScale(d.key))
+        .attr('d', d => areaGenerator(d.values))
+        .style('opacity', this._animated ? null : 0);
 
-      // Paths
+      // Paths — set full path, then animate draw left-to-right via dashoffset on first load
       linesEnter.append('path')
         .attr('class', 'chart-path')
         .style('stroke', d => this.colorScale(d.key))
-        .style('stroke-dasharray', d => this.config.dashedSeries.includes(d.key) ? '6 4' : null);
+        .attr('d', d => lineGenerator(d.values));
+
+      if (!this._animated) {
+        linesEnter.select('.chart-path').each(function() {
+          const len = this.getTotalLength();
+          d3.select(this)
+            .attr('stroke-dasharray', `${len} ${len}`)
+            .attr('stroke-dashoffset', len);
+        });
+      } else {
+        linesEnter.select('.chart-path')
+          .attr('stroke-dasharray', d => self.config.dashedSeries.includes(d.key) ? '6 4' : null);
+      }
 
       const linesMerge = linesEnter.merge(lines);
 
-      // Transition Area fills
+      // Transition Area fills — fade in staggered per series; update shape on resize
       linesMerge.select('.chart-area')
         .style('display', d => this.config.noAreaSeries.includes(d.key) ? 'none' : null)
-        .transition().duration(500)
+        .transition()
+        .delay((d, i) => seriesDelay(i))
+        .duration(enterDuration)
+        .ease(d3.easeCubicOut)
+        .style('opacity', null)
         .attr('d', d => areaGenerator(d.values));
 
-      // Transition Paths
-      linesMerge.select('.chart-path')
-        .transition().duration(500)
-        .attr('d', d => lineGenerator(d.values));
+      // Transition Paths — draw left-to-right on first load, instant path update on resize
+      if (!this._animated) {
+        linesMerge.select('.chart-path')
+          .transition()
+          .delay((d, i) => seriesDelay(i))
+          .duration(enterDuration)
+          .ease(d3.easeLinear)
+          .attr('stroke-dashoffset', 0)
+          .on('end', function(event, d) {
+            d3.select(this)
+              .attr('stroke-dasharray', self.config.dashedSeries.includes(d.key) ? '6 4' : null)
+              .attr('stroke-dashoffset', null);
+          });
+      } else {
+        linesMerge.select('.chart-path')
+          .attr('stroke-dasharray', d => this.config.dashedSeries.includes(d.key) ? '6 4' : null)
+          .transition().duration(500)
+          .attr('d', d => lineGenerator(d.values));
+      }
 
       lines.exit().remove();
 
-      // Node Interactive Dots
+      // Node Interactive Dots — stagger left-to-right per series matching line draw
+      const dotDelayMap = new Map();
+      if (!this._animated) {
+        this.nestedData.forEach((s, si) => {
+          s.values.forEach((v, vi) => {
+            dotDelayMap.set(`${v[this.config.groupKey]}-${+v._x}`,
+              seriesDelay(si) + (vi / Math.max(s.values.length - 1, 1)) * enterDuration);
+          });
+        });
+      }
+
       const dots = this.dotsContainer.selectAll('.chart-node')
         .data(parsedData, (d, i) => `${d[this.config.groupKey]}-${d._x}`);
 
@@ -452,7 +506,9 @@ export class LineChart {
         .style('fill', 'var(--bg-base)')
         .style('stroke', d => this.colorScale(d[this.config.groupKey]))
         .merge(dots)
-        .transition().duration(500)
+        .transition()
+        .delay(d => this._animated ? 0 : (dotDelayMap.get(`${d[this.config.groupKey]}-${+d._x}`) || 0))
+        .duration(250).ease(d3.easeCubicOut)
         .attr('r', 4.5)
         .attr('cx', d => xScale(d._x))
         .attr('cy', d => yScale(d._y));
@@ -462,7 +518,6 @@ export class LineChart {
         .attr('r', 0)
         .remove();
 
-      const self = this;
       this.dotsContainer.selectAll('.chart-node')
         .on('mouseover', function(event, d) {
           d3.select(this).transition().duration(150).attr('r', 7.5);
@@ -494,6 +549,8 @@ export class LineChart {
           self.linesContainer.selectAll('.line-group').transition().duration(200).style('opacity', 1.0);
           tooltip.hide();
         });
+
+      this._animated = true;
 
       if (this.config.inlineLegend) {
         this.drawInlineLegend(innerWidth);

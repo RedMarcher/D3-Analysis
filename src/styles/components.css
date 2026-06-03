@@ -779,3 +779,57 @@
   stroke-width: 1px;
 }
 
+/* Dimension Toggles Row for Slide 2 Scatter Plot */
+.dimension-toggles-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.85rem;
+  margin-bottom: 0.75rem;
+  padding: 0.5rem 0.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.dimension-toggles-row .legend-container {
+  margin-top: 0;
+}
+
+.toggle-group {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: rgba(255, 255, 255, 0.02);
+  padding: 0.2rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+}
+
+.toggle-group-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-left: 0.35rem;
+  margin-right: 0.25rem;
+  letter-spacing: 0.5px;
+  user-select: none;
+}
+
+/* Floating Compact Size Legend Overlay (Top-Right, Boxed) */
+.scatter-size-legend {
+  position: absolute;
+  right: 15px;
+  top: 5px;
+  background: rgba(8, 9, 14, 0.85);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--border-radius-sm);
+  padding: 6px 8px;
+  pointer-events: none;
+  z-index: 2;
+  box-shadow: var(--shadow-sm);
+}
+
+

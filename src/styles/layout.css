@@ -200,7 +200,7 @@ body::after {
 
 #slide-2-layout {
   display: none;
-  grid-template-columns: 7fr 13fr;
+  grid-template-columns: 5fr 15fr;
   gap: 1.25rem;
   align-items: stretch;
 }

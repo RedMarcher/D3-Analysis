@@ -213,8 +213,22 @@
             </div>
             <div id="s2-scatter-controls" class="chart-controls-group"></div>
           </div>
+          <div class="dimension-toggles-row" id="s2-dimension-toggles">
+            <div style="display: flex; gap: 0.85rem; flex-wrap: wrap; align-items: center;">
+              <div class="toggle-group" id="group-toggle-x">
+                <span class="toggle-group-label">X-Axis:</span>
+                <button class="btn-control-tab active" data-val="date">Date</button>
+                <button class="btn-control-tab" data-val="funds_raised">Capital</button>
+              </div>
+              <div class="toggle-group" id="group-toggle-y">
+                <span class="toggle-group-label">Y-Axis:</span>
+                <button class="btn-control-tab active" data-val="total_laid_off">Employees</button>
+                <button class="btn-control-tab" data-val="percentage_laid_off">% Laid Off</button>
+              </div>
+            </div>
+            <div class="legend-container" id="legend-s2-scatter"></div>
+          </div>
           <div class="chart-container-wrapper" id="s2-container-scatter" style="height: 360px;"></div>
-          <div class="legend-container" id="legend-s2-scatter"></div>
         </div>
 
       </div>

@@ -17,6 +17,9 @@ export class ScatterPlot {
       xLabel:      config.xLabel      || 'X Dimension',
       yLabel:      config.yLabel      || 'Y Dimension',
       xScaleType:  config.xScaleType  || 'log',
+      yScaleType:  config.yScaleType  || 'log',
+      xFormat:     config.xFormat     || null,
+      yFormat:     config.yFormat     || null,
       margin:      config.margin      || { top: 30, right: 30, bottom: 50, left: 55 },
       colors:      config.colors      || d3.schemeSet2
     };
@@ -102,15 +105,28 @@ export class ScatterPlot {
     this.container.__resizeObserver.observe(this.container);
   }
 
-  update(rawData) {
-    if (!rawData || rawData.length === 0) return;
-    this.data = rawData;
+  update(rawData, newConfig = {}) {
+    if (rawData) {
+      this.data = rawData;
+    }
+    
+    // Merge new config keys
+    Object.keys(newConfig).forEach(key => {
+      this.config[key] = newConfig[key];
+    });
+
+    if (!this.data || this.data.length === 0) return;
+    
     this._animated = false;
-    const presentGroups = new Set(rawData.map(d => d[this.config.groupKey]));
+    const presentGroups = new Set(this.data.map(d => d[this.config.groupKey]));
     const uniqueGroups = this.config.groupOrder
       ? this.config.groupOrder.filter(g => presentGroups.has(g))
       : Array.from(presentGroups).sort();
+    
     this.colorScale.domain(uniqueGroups);
+    if (newConfig.colors) {
+      this.colorScale.range(newConfig.colors);
+    }
     this.activeGroups = new Set(uniqueGroups);
     this.draw();
   }
@@ -146,16 +162,48 @@ export class ScatterPlot {
 
     this.bgRect.attr('width', innerWidth).attr('height', innerHeight);
 
-    this.xScaleBase = this.config.xScaleType === 'time'
-      ? d3.scaleTime().domain(d3.extent(this.data, d => d[xKey])).range([0, innerWidth])
-      : d3.scaleLog().domain([d3.min(this.data, d => +d[xKey]) * 0.9 || 1, d3.max(this.data, d => +d[xKey]) * 1.1 || 100]).range([0, innerWidth]);
+    // Filter valid points based on scale requirements (avoid zero/negatives on log scale)
+    this.filteredData = this.data.filter(d => {
+      const xVal = this.config.xScaleType === 'time' ? d[xKey] : +d[xKey];
+      const yVal = +d[yKey];
+      
+      const isXValid = xVal !== null && xVal !== undefined && !isNaN(xVal) && (this.config.xScaleType !== 'log' || xVal > 0);
+      const isYValid = yVal !== null && yVal !== undefined && !isNaN(yVal) && (this.config.yScaleType !== 'log' || yVal > 0);
+      
+      return isXValid && isYValid;
+    });
 
-    this.yScaleBase = d3.scaleLog()
-      .domain([d3.min(this.data, d => +d[yKey]) * 0.9 || 1, d3.max(this.data, d => +d[yKey]) * 1.1 || 100])
-      .range([innerHeight, 0]);
+    // Initializing X Scale
+    if (this.config.xScaleType === 'time') {
+      const extent = d3.extent(this.filteredData, d => d[xKey]);
+      const minDate = new Date(extent[0]);
+      const maxDate = new Date(extent[1]);
+      minDate.setMonth(minDate.getMonth() - 2);
+      maxDate.setMonth(maxDate.getMonth() + 2);
+      this.xScaleBase = d3.scaleTime().domain([minDate, maxDate]).range([0, innerWidth]);
+    } else if (this.config.xScaleType === 'linear') {
+      const maxVal = d3.max(this.filteredData, d => +d[xKey]) || 100;
+      this.xScaleBase = d3.scaleLinear().domain([-maxVal * 0.05, maxVal * 1.15]).range([0, innerWidth]);
+    } else {
+      // default: log scale
+      const minVal = d3.min(this.filteredData, d => +d[xKey]) || 1;
+      const maxVal = d3.max(this.filteredData, d => +d[xKey]) || 100;
+      this.xScaleBase = d3.scaleLog().domain([minVal / 2, maxVal * 2]).range([0, innerWidth]);
+    }
+
+    // Initializing Y Scale
+    if (this.config.yScaleType === 'linear') {
+      const maxVal = d3.max(this.filteredData, d => +d[yKey]) || 100;
+      this.yScaleBase = d3.scaleLinear().domain([-maxVal * 0.05, maxVal * 1.15]).range([innerHeight, 0]);
+    } else {
+      // default: log scale
+      const minVal = d3.min(this.filteredData, d => +d[yKey]) || 1;
+      const maxVal = d3.max(this.filteredData, d => +d[yKey]) || 100;
+      this.yScaleBase = d3.scaleLog().domain([minVal / 1.5, maxVal * 1.5]).range([innerHeight, 0]);
+    }
 
     this.sizeScale = d3.scaleSqrt()
-      .domain(d3.extent(this.data, d => +d[sizeKey]))
+      .domain(d3.extent(this.filteredData, d => +d[sizeKey]))
       .range([3, Math.min(20, innerWidth / 28)]);
 
     this.zoom
@@ -199,28 +247,111 @@ export class ScatterPlot {
   }
 
   _renderAxes(xScale, yScale) {
-    const xAxis = this.config.xScaleType === 'time'
-      ? d3.axisBottom(xScale).ticks(d3.timeYear.every(1)).tickFormat(d3.timeFormat('%Y'))
-      : d3.axisBottom(xScale).ticks(this._innerWidth > 500 ? 6 : 3, '~s');
+    let xAxis = d3.axisBottom(xScale);
+    if (this.config.xScaleType === 'time') {
+      xAxis.ticks(d3.timeYear.every(1)).tickFormat(d3.timeFormat('%Y'));
+    } else if (this.config.xScaleType === 'log') {
+      let ticks = xScale.ticks(5).filter(d => {
+        const log = Math.log10(d);
+        return Math.abs(log - Math.round(log)) < 1e-9;
+      });
+      xAxis.tickValues(ticks);
+      if (this.config.xFormat) {
+        xAxis.tickFormat(this.config.xFormat);
+      } else {
+        xAxis.tickFormat(d3.format('~s'));
+      }
+    } else {
+      let ticks = xScale.ticks(this._innerWidth > 500 ? 6 : 3);
+      const hasNegative = d3.min(this.filteredData, d => +d[this.config.xKey]) < 0;
+      if (!hasNegative) {
+        ticks = ticks.filter(t => t >= 0);
+      }
+      xAxis.tickValues(ticks);
+      if (this.config.xFormat) {
+        xAxis.tickFormat(this.config.xFormat);
+      } else {
+        xAxis.tickFormat(d3.format('~s'));
+      }
+    }
 
     this.xAxisGroup
       .attr('transform', `translate(0, ${this._innerHeight})`)
       .call(xAxis);
 
-    this.yAxisGroup
-      .call(d3.axisLeft(yScale).ticks(this._innerHeight > 300 ? 5 : 3, '~s'));
+    let yAxis = d3.axisLeft(yScale);
+    if (this.config.yScaleType === 'log') {
+      let ticks = yScale.ticks(5).filter(d => {
+        const log = Math.log10(d);
+        return Math.abs(log - Math.round(log)) < 1e-9;
+      });
+      yAxis.tickValues(ticks);
+      if (this.config.yFormat) {
+        yAxis.tickFormat(this.config.yFormat);
+      } else {
+        yAxis.tickFormat(d3.format('~s'));
+      }
+    } else {
+      let ticks = yScale.ticks(this._innerHeight > 300 ? 5 : 3);
+      const hasNegative = d3.min(this.filteredData, d => +d[this.config.yKey]) < 0;
+      if (!hasNegative) {
+        ticks = ticks.filter(t => t >= 0);
+      }
+      yAxis.tickValues(ticks);
+      if (this.config.yFormat) {
+        yAxis.tickFormat(this.config.yFormat);
+      } else if (this.config.yScaleType === 'linear') {
+        yAxis.tickFormat(d3.format('.0f'));
+      } else {
+        yAxis.tickFormat(d3.format('~s'));
+      }
+    }
+
+    this.yAxisGroup.call(yAxis);
   }
 
   _renderGrid(xScale, yScale) {
     this.gridGroup.selectAll('g').remove();
 
-    this.gridGroup.append('g')
-      .attr('transform', `translate(0, ${this._innerHeight})`)
-      .call(d3.axisBottom(xScale).tickSize(-this._innerHeight).tickFormat(''))
-      .call(g => g.select('.domain').remove());
+    let xGridAxis = d3.axisBottom(xScale).tickSize(-this._innerHeight).tickFormat('');
+    if (this.config.xScaleType === 'log') {
+      let ticks = xScale.ticks(5).filter(d => {
+        const log = Math.log10(d);
+        return Math.abs(log - Math.round(log)) < 1e-9;
+      });
+      xGridAxis.tickValues(ticks);
+    } else {
+      let ticks = xScale.ticks(this._innerWidth > 500 ? 6 : 3);
+      const hasNegative = d3.min(this.filteredData, d => +d[this.config.xKey]) < 0;
+      if (!hasNegative) {
+        ticks = ticks.filter(t => t >= 0);
+      }
+      xGridAxis.tickValues(ticks);
+    }
 
     this.gridGroup.append('g')
-      .call(d3.axisLeft(yScale).tickSize(-this._innerWidth).tickFormat(''))
+      .attr('transform', `translate(0, ${this._innerHeight})`)
+      .call(xGridAxis)
+      .call(g => g.select('.domain').remove());
+
+    let yGridAxis = d3.axisLeft(yScale).tickSize(-this._innerWidth).tickFormat('');
+    if (this.config.yScaleType === 'log') {
+      let ticks = yScale.ticks(5).filter(d => {
+        const log = Math.log10(d);
+        return Math.abs(log - Math.round(log)) < 1e-9;
+      });
+      yGridAxis.tickValues(ticks);
+    } else {
+      let ticks = yScale.ticks(this._innerHeight > 300 ? 5 : 3);
+      const hasNegative = d3.min(this.filteredData, d => +d[this.config.yKey]) < 0;
+      if (!hasNegative) {
+        ticks = ticks.filter(t => t >= 0);
+      }
+      yGridAxis.tickValues(ticks);
+    }
+
+    this.gridGroup.append('g')
+      .call(yGridAxis)
       .call(g => g.select('.domain').remove());
   }
 
@@ -230,14 +361,14 @@ export class ScatterPlot {
     const xVal = d => xScaleType === 'time' ? d[xKey] : +d[xKey];
 
     const bubbles = this.bubblesContainer.selectAll('.chart-node')
-      .data(this.data, d => d[labelKey] + String(d[xKey]));
+      .data(this.filteredData, d => d.id || (d[labelKey] + String(d[xKey])));
 
     const isFirstDraw = !this._animated;
     this._animated = true;
 
     // Precompute x-based stagger range for entrance animation
-    const xMin  = +d3.min(this.data, d => d[xKey]);
-    const xSpan = +d3.max(this.data, d => d[xKey]) - xMin || 1;
+    const xMin  = +d3.min(this.filteredData, d => d[xKey]);
+    const xSpan = +d3.max(this.filteredData, d => d[xKey]) - xMin || 1;
 
     const bubblesEnter = bubbles.enter().append('circle')
       .attr('class', 'chart-node')
@@ -289,9 +420,13 @@ export class ScatterPlot {
         self.crosshair.select('.crosshair-y')
           .attr('x1', cx).attr('y1', cy).attr('x2', 0).attr('y2', cy);
 
-        const xDisplay = xScaleType === 'time'
-          ? d3.timeFormat('%b %Y')(d[xKey])
-          : formatValue(+d[xKey]);
+        const xDisplay = self.config.xFormat
+          ? self.config.xFormat(xScaleType === 'time' ? d[xKey] : +d[xKey])
+          : (xScaleType === 'time' ? d3.timeFormat('%b %Y')(d[xKey]) : formatValue(+d[xKey]));
+
+        const yDisplay = self.config.yFormat
+          ? self.config.yFormat(+d[yKey])
+          : Math.round(+d[yKey]).toLocaleString();
 
         const htmlContent = `
           <div class="d3-tooltip-title">${d[labelKey]}</div>
@@ -305,7 +440,7 @@ export class ScatterPlot {
           </div>
           <div class="d3-tooltip-row">
             <span>${yLabel}:</span>
-            <span class="d3-tooltip-val">${Math.round(+d[yKey]).toLocaleString()}</span>
+            <span class="d3-tooltip-val">${yDisplay}</span>
           </div>
           <div class="d3-tooltip-row">
             <span>Funds raised:</span>
@@ -326,56 +461,64 @@ export class ScatterPlot {
 
   drawLegend() {
     const legendContainer = document.getElementById(`legend-${this.container.id.replace('container-', '')}`);
-    if (!legendContainer) return;
+    if (legendContainer) {
+      legendContainer.innerHTML = '';
+      this.colorScale.domain().forEach(key => {
+        const item = document.createElement('div');
+        item.className = 'legend-item legend-item-btn';
+        item.dataset.group = key;
+        item.title = this.activeGroups.size === this.colorScale.domain().length
+          ? `Show only ${key}` : `Toggle ${key}`;
 
-    legendContainer.innerHTML = '';
-    this.colorScale.domain().forEach(key => {
-      const item = document.createElement('div');
-      item.className = 'legend-item legend-item-btn';
-      item.dataset.group = key;
-      item.title = this.activeGroups.size === this.colorScale.domain().length
-        ? `Show only ${key}` : `Toggle ${key}`;
+        const dot = document.createElement('span');
+        dot.className = 'legend-color';
+        dot.style.backgroundColor = this.colorScale(key);
 
-      const dot = document.createElement('span');
-      dot.className = 'legend-color';
-      dot.style.backgroundColor = this.colorScale(key);
+        const text = document.createElement('span');
+        text.textContent = key;
 
-      const text = document.createElement('span');
-      text.textContent = key;
+        item.appendChild(dot);
+        item.appendChild(text);
+        item.addEventListener('click', () => this._toggleGroup(key));
+        legendContainer.appendChild(item);
+      });
 
-      item.appendChild(dot);
-      item.appendChild(text);
-      item.addEventListener('click', () => this._toggleGroup(key));
-      legendContainer.appendChild(item);
-    });
-
-    this._updateLegendState();
+      this._updateLegendState();
+    }
 
     if (!this.sizeScale) return;
 
-    // Size legend
-    const sizeSamples = [
-      { value: 100,   label: '$100M' },
-      { value: 2000,  label: '$2B'   },
-      { value: 30000, label: '$30B'  },
-    ];
-    const maxR    = this.sizeScale(sizeSamples[sizeSamples.length - 1].value);
-    const svgH    = maxR * 2 + 8;
-    const padding = 10;
+    // Create a compact floating overlay size legend inside the chart wrapper (this.container)
+    let sizeLegendDiv = this.container.querySelector('.scatter-size-legend');
+    if (!sizeLegendDiv) {
+      sizeLegendDiv = document.createElement('div');
+      sizeLegendDiv.className = 'scatter-size-legend';
+      this.container.appendChild(sizeLegendDiv);
+    }
+    sizeLegendDiv.innerHTML = '';
 
-    let xCursor = padding;
+    // Size legend samples (vertical layout: largest to smallest)
+    const sizeSamples = [
+      { value: 30000, label: '$30B'  },
+      { value: 2000,  label: '$2B'   },
+      { value: 100,   label: '$100M' },
+    ];
+    const maxR    = this.sizeScale(sizeSamples[0].value);
+    const gap     = 4;
+    const padding = maxR;
+
+    let yCursor = 2;
     const positions = sizeSamples.map(s => {
       const r = this.sizeScale(s.value);
-      const cx = xCursor + r;
-      xCursor = cx + r + padding + 30;
-      return { ...s, r, cx };
+      const cy = yCursor + r;
+      yCursor = cy + r + gap;
+      return { ...s, r, cy };
     });
-    const svgW = xCursor;
+    const svgH = yCursor - gap + 2;
 
-    const divider = document.createElement('div');
-    divider.className = 'legend-size-divider';
-    divider.textContent = 'Bubble size: Funds Raised';
-    legendContainer.appendChild(divider);
+    const cx = padding;
+    const textX = padding + maxR + 5;
+    const svgW = textX + 35;
 
     const svgNS = 'http://www.w3.org/2000/svg';
     const svg = document.createElementNS(svgNS, 'svg');
@@ -384,9 +527,7 @@ export class ScatterPlot {
     svg.style.display = 'block';
     svg.style.overflow = 'visible';
 
-    positions.forEach(({ r, cx, label }) => {
-      const cy = svgH / 2;
-
+    positions.forEach(({ r, cy, label }) => {
       const circle = document.createElementNS(svgNS, 'circle');
       circle.setAttribute('cx', cx);
       circle.setAttribute('cy', cy);
@@ -397,15 +538,15 @@ export class ScatterPlot {
       svg.appendChild(circle);
 
       const text = document.createElementNS(svgNS, 'text');
-      text.setAttribute('x', cx + r + 4);
-      text.setAttribute('y', cy + 4);
+      text.setAttribute('x', textX);
+      text.setAttribute('y', cy + 3.5);
       text.setAttribute('fill', 'var(--text-secondary)');
-      text.setAttribute('font-size', '10');
+      text.setAttribute('font-size', '9');
       text.textContent = label;
       svg.appendChild(text);
     });
 
-    legendContainer.appendChild(svg);
+    sizeLegendDiv.appendChild(svg);
   }
 
   _toggleGroup(key) {

@@ -42,11 +42,11 @@ export const narrative = {
   lbl: "Exhibit 2: - Tech Layoffs",
   title: "Corporate Gain vs. Stable Labor",
   body: `
-    <p>Tech giants are investing billions in new data center physical assets, but are simultaneously conducting massive workforce cuts, shedding hundreds of thousands of jobs.</p>
+    <p>Tech giants are investing billions in new data center physical assets, but are simultaneously conducting workforce cuts, shedding hundreds of thousands of jobs.</p>
     <ul class="narrative-bullets">
       <li><strong>Diverging trends:</strong> From 2020 to 2026, U.S. data center power capacity tripled from 19 GW to 59 GW — while tech layoffs surged past 655,000 cumulative cuts.</li>
       <li><strong>Automated over human:</strong> Capital expenditure is skewed towards high-margin computing assets rather than preserving stable human employment.</li>
-      <li><strong>Big tech leads recent cuts:</strong> The scatter's top-right — largest and most recent events — is dominated by Post-IPO giants: Oracle (30K, Mar 2026), Intel (22K), Amazon (16K), Tesla (14K), Dell (11K), and Meta, Microsoft, Cisco, and PayPal all posting multi-thousand cuts since 2024. These are not struggling startups — they are profitable, publicly traded companies shedding workforce while expanding data center infrastructure.</li>
+      <li><strong>Core tech leads recent cuts:</strong> The scatter plot showcases core tech sectors — AI, Hardware, Infrastructure, Security, Data, Crypto, and Product. The largest events are dominated by giants: Intel (22K, Hardware), Dell (11K, Hardware), and Cisco (4K, Infrastructure), alongside major cybersecurity and AI firms. These profitable companies are expanding physical hardware assets while reducing stable human labor.</li>
     </ul>
   `,
   takeawayTitle: "Conclusive Takeaway: Automated Capital Gain",
@@ -184,44 +184,71 @@ export function render({ layoffsData, aterioYearlyMW }) {
   });
 
   // Scatter plot
-  const STAGE_ORDER = ['Seed', 'Series A', 'Series B', 'Series C', 'Series D+', 'Acquired', 'Private Equity', 'Post-IPO'];
-  const stageColors = STAGE_ORDER.map((_, i) => d3.interpolatePlasma(0.15 + (i / (STAGE_ORDER.length - 1)) * 0.8));
+  const TECH_INDUSTRIES = ['AI', 'Crypto', 'Data', 'Hardware', 'Infrastructure', 'Security', 'Product'];
+  const techColors = [
+    '#ff4757', // AI - Coral Red
+    '#ffa502', // Crypto - Orange
+    '#2ed573', // Data - Emerald Green
+    '#00f2fe', // Hardware - Cyan
+    '#1e90ff', // Infrastructure - Dodger Blue
+    '#9b5de5', // Security - Purple
+    '#f15bb5'  // Product - Hot Pink
+  ];
   const parseDate = d3.timeParse('%m/%d/%Y');
 
   function normalizeStage(s) {
     if (!s) return null;
+    const STAGE_ORDER = ['Seed', 'Series A', 'Series B', 'Series C', 'Series D+', 'Acquired', 'Private Equity', 'Post-IPO'];
     if (['Series D', 'Series E', 'Series F', 'Series G', 'Series H', 'Series I'].includes(s)) return 'Series D+';
     return STAGE_ORDER.includes(s) ? s : null;
   }
 
+  // Parse all layoffs data focusing on US core Tech sectors only
+  const processedLayoffs = layoffsData.map((d, index) => ({
+    id: `layoff-${index}`,
+    company: d.company,
+    stage: normalizeStage(d.stage),
+    total_laid_off: d.total_laid_off ? +d.total_laid_off : null,
+    percentage_laid_off: d.percentage_laid_off ? (+d.percentage_laid_off * 100) : null,
+    industry: d.industry ? d.industry.trim() : null,
+    funds_raised: Math.max(1, +d.funds_raised || 1),
+    date: parseDate(d.date),
+    country: d.country
+  })).filter(d =>
+    d.stage &&
+    d.date !== null &&
+    d.country === 'United States' &&
+    !isNaN(d.total_laid_off) && d.total_laid_off >= 200 &&
+    TECH_INDUSTRIES.includes(d.industry)
+  );
+
+  // Keep track of active configuration states
+  let activeX = 'date';
+  let activeY = 'total_laid_off';
+
   const scatter = new ScatterPlot('#s2-container-scatter', {
-    xKey: 'date',
-    yKey: 'total_laid_off',
+    xKey: activeX,
+    yKey: activeY,
     sizeKey: 'funds_raised',
-    groupKey: 'stage',
-    groupLabel: 'Stage',
+    groupKey: 'industry',
+    groupLabel: 'Industry',
     labelKey: 'company',
     xLabel: 'Date',
     yLabel: 'Employees Laid Off',
     xScaleType: 'time',
-    groupOrder: STAGE_ORDER,
-    colors: stageColors
+    groupOrder: TECH_INDUSTRIES,
+    colors: techColors
   });
 
-  const formattedLayoffs = layoffsData.map(d => ({
-    company: d.company,
-    stage: normalizeStage(d.stage),
-    total_laid_off: +d.total_laid_off,
-    funds_raised: Math.max(1, +d.funds_raised || 1),
-    date: parseDate(d.date)
-  })).filter(d =>
-    d.stage &&
-    d.date !== null &&
-    !isNaN(d.total_laid_off) && d.total_laid_off >= 200
-  );
+  scatter.update(processedLayoffs);
 
-  scatter.update(formattedLayoffs);
+  // Set default title
+  const initialTitle = document.querySelector('#slide-2-layout .s2-chart-card:last-child .glass-card-title span');
+  if (initialTitle) {
+    initialTitle.textContent = 'Layoff Events by Date, Employees & Industry';
+  }
 
+  // Render Zoom Controls
   d3.select('#s2-scatter-controls').html(`
     <div style="display: flex; align-items: center; gap: 0.25rem;">
       <span style="font-size: 0.75rem; color: var(--text-secondary); margin-right: 0.5rem; opacity: 0.7;">(Scroll to zoom, click and drag to pan)</span>
@@ -233,4 +260,76 @@ export function render({ layoffsData, aterioYearlyMW }) {
   d3.select('#btn-scatter-zoom-in').on('click', () => scatter.zoomIn());
   d3.select('#btn-scatter-zoom-out').on('click', () => scatter.zoomOut());
   d3.select('#btn-reset-scatter-zoom').on('click', () => scatter.resetZoom());
+
+  // Reset active classes on static toggles to match initial JS state
+  d3.selectAll('#group-toggle-x button').classed('active', false);
+  d3.select('#group-toggle-x button[data-val="date"]').classed('active', true);
+  d3.selectAll('#group-toggle-y button').classed('active', false);
+  d3.select('#group-toggle-y button[data-val="total_laid_off"]').classed('active', true);
+
+  function updateScatterConfig() {
+    let xLabel = 'Date';
+    let xScaleType = 'time';
+    let xFormat = null;
+    if (activeX === 'funds_raised') {
+      xLabel = 'Total Funds Raised';
+      xScaleType = 'log';
+      xFormat = d => {
+        if (d >= 1000) return `$${(d / 1000).toFixed(0)}B`;
+        return `$${d}M`;
+      };
+    }
+
+    let yLabel = 'Employees Laid Off';
+    let yScaleType = 'log';
+    let yFormat = null;
+    if (activeY === 'percentage_laid_off') {
+      yLabel = 'Workforce Laid Off';
+      yScaleType = 'linear';
+      yFormat = d => `${Math.round(d)}%`;
+    }
+
+    const groupKey = 'industry';
+    const groupLabel = 'Industry';
+    const groupOrder = TECH_INDUSTRIES;
+    const colors = techColors;
+
+    // Update visual title based on states
+    const cardTitle = document.querySelector('#slide-2-layout .s2-chart-card:last-child .glass-card-title span');
+    if (cardTitle) {
+      const xText = activeX === 'date' ? 'Date' : 'Funds Raised';
+      const yText = activeY === 'total_laid_off' ? 'Employees' : '% Laid Off';
+      cardTitle.textContent = `Layoff Events by ${xText}, ${yText} & Industry`;
+    }
+
+    scatter.update(processedLayoffs, {
+      xKey: activeX,
+      yKey: activeY,
+      xLabel,
+      yLabel,
+      xScaleType,
+      yScaleType,
+      xFormat,
+      yFormat,
+      groupKey,
+      groupLabel,
+      groupOrder,
+      colors
+    });
+  }
+
+  // Wire up button handlers
+  d3.selectAll('#group-toggle-x button').on('click', function() {
+    d3.selectAll('#group-toggle-x button').classed('active', false);
+    d3.select(this).classed('active', true);
+    activeX = d3.select(this).attr('data-val');
+    updateScatterConfig();
+  });
+
+  d3.selectAll('#group-toggle-y button').on('click', function() {
+    d3.selectAll('#group-toggle-y button').classed('active', false);
+    d3.select(this).classed('active', true);
+    activeY = d3.select(this).attr('data-val');
+    updateScatterConfig();
+  });
 }

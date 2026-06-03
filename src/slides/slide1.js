@@ -2,18 +2,18 @@ import * as d3 from 'd3';
 import { USMap } from '../components/us-map.js';
 
 export const narrative = {
-  lbl: "Exhibit 1: Real-World Distribution",
+  lbl: "Exhibit 1: The True Scale",
   title: "The Massive Infrastructure Footprint",
   body: `
-    <p>The U.S. data center footprint is expanding rapidly, driven by AI and cloud infrastructure demands. This exhibit illustrates where the physical infrastructure is concentrated — and where it is headed.</p>
+    <p>The U.S. data center footprint is expanding rapidly, driven by AI and cloud infrastructure demands. This exhibit illustrates where the physical infrastructure is concentrated, and where future facilities are planned.</p>
     <ul class="narrative-bullets">
-      <li><strong>Geographic Leaders:</strong> Virginia, Texas, and California lead in active verified facilities, with Virginia more than doubling the next state.</li>
-      <li><strong>Expansion Surge:</strong> 4,138 facilities are planned or under construction — more than double the 1,963 currently active.</li>
-      <li><strong>Corporate Gatekeepers:</strong> Amazon and Microsoft dominate the landscape, controlling the majority of capacity in every major hub state.</li>
+      <li><strong>Leading States:</strong> Virginia, Texas, and California lead in active facilities, with Virginia having more than double the next state.</li>
+      <li><strong>Exponential Expansion:</strong> 4,138 facilities are planned or under construction — more than double the 1,963 currently active.</li>
+      <li><strong>Corporate Dominance:</strong> Amazon and Microsoft dominate the landscape, controlling the majority of capacity in every major hub state. Data centers require massive capital investment, and do not have small or medium sized competitors.</li>
     </ul>
   `,
-  takeawayTitle: "Conclusive Takeaway: The Illusion of Scale",
-  takeawayText: "While the physical footprint is massive, this growth is highly localized. Corporations select sites based on tax breaks and low energy rates, forcing local economies to bear the structural burden of corporate computing expansion."
+  takeawayTitle: "Conclusive Takeaway: Unavoidability",
+  takeawayText: "Data centers exist in every single US state. They exist in rural, suburban, and urban settings. They are typically not located to avoid population centers. Most facilities are operated directly by corporations, rather than by local businesses or franchises."
 };
 
 let _cycleInterval = null;

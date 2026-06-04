@@ -201,7 +201,7 @@ body::after {
 
 #slide-2-layout {
   display: none;
-  grid-template-columns: 5fr 15fr;
+  grid-template-columns: 6fr 12fr;
   gap: 1.25rem;
   align-items: stretch;
 }
@@ -215,18 +215,9 @@ body::after {
 }
 
 .s2-chart-card {
-  flex: 1;
+  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
-  min-height: 220px;
-}
-
-.s2-left .s2-chart-card:first-child {
-  flex: 1;
-}
-
-.s2-left .s2-chart-card:last-child {
-  flex: 0 0 auto;
 }
 
 .s2-kpi-row {
@@ -247,7 +238,7 @@ body::after {
 /* ── Slide 3 custom layout ─────────────────────────── */
 #slide-3-layout {
   display: none;
-  grid-template-columns: 7fr 13fr 4fr;
+  grid-template-columns: 6fr 14fr 4fr;
   gap: 1.25rem;
   align-items: start;
 }
@@ -371,13 +362,12 @@ body::after {
     min-height: auto;
   }
 
-  /* Slide 2: charts no longer flex-grow, give them explicit heights */
+  /* Slide 2: shrink line chart on tablet */
   .s2-chart-card {
     flex: none;
   }
   #s2-container-line {
     height: 280px;
-    flex: none;
   }
 
   /* Slide 3: KPI column becomes a horizontal row when stacked */

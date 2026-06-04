@@ -169,8 +169,10 @@ export function render({ energyData, aterioYearlyMW }) {
   // Start projected from the last real point so the lines visually connect
   comparisonData.push({ date: `${last.year}/01/01`, value: Math.round(last.total), series: 'US Grid (Projected)' });
   let projected = last.total;
+  let growthRate = cagr;
   for (let yr = last.year + 1; yr <= lastDCYear; yr++) {
-    projected *= cagr;
+    growthRate *= 1.002; // accelerating rate — grid under increasing pressure from DC demand
+    projected *= growthRate;
     comparisonData.push({ date: `${yr}/01/01`, value: Math.round(projected), series: 'US Grid (Projected)' });
   }
 

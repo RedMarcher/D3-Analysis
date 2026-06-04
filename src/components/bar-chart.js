@@ -18,7 +18,9 @@ export class BarChart {
       colors: config.colors || ['#00f2fe', '#4facfe', '#b100ff', '#ffb700', '#ff0844'],
       yLabel: config.yLabel || '',
       xTickFormat: config.xTickFormat || (d => `${d}%`),
-      tooltipFormatter: config.tooltipFormatter || null
+      tooltipFormatter: config.tooltipFormatter || null,
+      showValueLabels: config.showValueLabels || false,
+      benchmarkLines: config.benchmarkLines || []
     };
 
     this.svg = null;
@@ -82,9 +84,11 @@ export class BarChart {
       .domain(this.data.map(d => d[yKey]))
       .padding(0.25);
 
+    const dataMax  = d3.max(this.data, d => +d[xKey]) || 100;
+    const benchMax = this.config.benchmarkLines.reduce((m, l) => Math.max(m, l.value), 0);
     const xScale = d3.scaleLinear()
       .range([0, innerWidth])
-      .domain([0, d3.max(this.data, d => +d[xKey]) * 1.1 || 100]);
+      .domain([0, Math.max(dataMax, benchMax) * 1.1]);
 
     // Position axes
     this.xAxisGroup
@@ -189,6 +193,57 @@ export class BarChart {
       .transition().duration(300)
       .attr('width', 0)
       .remove();
+
+    // Value labels at bar ends
+    if (this.config.showValueLabels) {
+      const valLabels = this.g.selectAll('.bar-val-label')
+        .data(this.data, d => d[yKey]);
+
+      valLabels.enter().append('text')
+        .attr('class', 'bar-val-label')
+        .attr('y', d => yScale(d[yKey]) + yScale.bandwidth() / 2)
+        .attr('x', d => xScale(+d[xKey]))
+        .attr('dy', '0.35em')
+        .attr('opacity', 0)
+        .merge(valLabels)
+        .transition().duration(500).delay(280)
+        .attr('y', d => yScale(d[yKey]) + yScale.bandwidth() / 2)
+        .attr('x', d => xScale(+d[xKey]) + 7)
+        .attr('opacity', 1)
+        .attr('font-size', '10px')
+        .attr('fill', 'var(--text-muted)');
+
+      this.g.selectAll('.bar-val-label')
+        .text(d => this.config.xTickFormat(+d[xKey]));
+
+      valLabels.exit().remove();
+    }
+
+    // Benchmark reference lines
+    this.g.selectAll('.bench-line-group').remove();
+    this.config.benchmarkLines.forEach(({ value, label, color = 'var(--accent-success)' }) => {
+      const bx = xScale(value);
+      if (bx < 0 || bx > innerWidth) return;
+
+      const bg = this.g.append('g').attr('class', 'bench-line-group');
+
+      bg.append('line')
+        .attr('x1', bx).attr('y1', 0)
+        .attr('x2', bx).attr('y2', innerHeight)
+        .attr('stroke', color)
+        .attr('stroke-width', 1.5)
+        .attr('stroke-dasharray', '5,3')
+        .attr('stroke-opacity', 0.7);
+
+      bg.append('text')
+        .attr('x', bx - 5)
+        .attr('y', -8)
+        .attr('text-anchor', 'end')
+        .attr('font-size', '9px')
+        .attr('fill', color)
+        .attr('font-weight', '600')
+        .text(label);
+    });
   }
 
   /**

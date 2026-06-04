@@ -304,6 +304,67 @@
 
     </div>
 
+    <!-- Slide 4 Custom Layout -->
+    <div id="slide-4-layout">
+
+      <!-- Left: narrative only -->
+      <div class="s4-sidebar">
+        <div class="glass-card s4-narrative" id="s4-narrative-card">
+          <div class="narrative-header">
+            <span class="narrative-slide-number" id="s4-narrative-lbl"></span>
+            <h2 class="narrative-title" id="s4-narrative-title"></h2>
+          </div>
+          <div class="narrative-body" id="s4-narrative-body"></div>
+          <div class="takeaway-card" id="s4-takeaway-card">
+            <div class="takeaway-title" id="s4-takeaway-title"></div>
+            <div class="takeaway-text" id="s4-takeaway-text"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Middle: workforce unit chart + wage bar chart stacked -->
+      <div class="s4-charts">
+        <div class="glass-card s4-chart-card">
+          <div class="glass-card-title" style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="display:flex; flex-direction:column;">
+              <span>Who Data Centers Actually Hire</span>
+              <span class="map-source-badge">Source: BLS OEWS May 2025</span>
+            </div>
+          </div>
+          <div class="chart-container-wrapper" id="s4-container-slope"></div>
+        </div>
+        <div class="glass-card s4-chart-card">
+          <div class="glass-card-title" style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="display:flex; flex-direction:column;">
+              <span>Wage Reality Check</span>
+              <span class="map-source-badge">Source: BLS OEWS May 2025</span>
+            </div>
+          </div>
+          <div class="chart-container-wrapper" id="s4-container-wages"></div>
+        </div>
+      </div>
+
+      <!-- Right: KPI cards -->
+      <div class="s4-kpis">
+        <div class="glass-card metric-card" id="kpi-s4-1">
+          <span class="metric-label">Workforce Role</span>
+          <span class="metric-value">0</span>
+          <span class="metric-trend neutral"><span>--</span></span>
+        </div>
+        <div class="glass-card metric-card" id="kpi-s4-2">
+          <span class="metric-label">Workforce Split</span>
+          <span class="metric-value">0</span>
+          <span class="metric-trend down"><span>--</span></span>
+        </div>
+        <div class="glass-card metric-card" id="kpi-s4-3">
+          <span class="metric-label">Wage Gap</span>
+          <span class="metric-value">0</span>
+          <span class="metric-trend down"><span>--</span></span>
+        </div>
+      </div>
+
+    </div>
+
     <!-- Slideshow Navigation Footer -->
     <footer class="slideshow-footer">
       <div class="app-footer-info">

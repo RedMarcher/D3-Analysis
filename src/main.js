@@ -26,10 +26,11 @@ document.addEventListener('DOMContentLoaded', () => {
     d3.csv('/layoffs.csv'),
     d3.csv('/Electricity production by source.csv'),
     d3.json('/aterio_states.json'),
-    d3.json('/aterio_yearly_mw.json')
+    d3.json('/aterio_yearly_mw.json'),
+    d3.json('/bls_wages.json')
   ])
-    .then(([geoJson, slideData, atlasData, layoffsData, energyData, aterioStates, aterioYearlyMW]) => {
-      const data = { geoJson, slideData, atlasData, layoffsData, energyData, aterioStates, aterioYearlyMW };
+    .then(([geoJson, slideData, atlasData, layoffsData, energyData, aterioStates, aterioYearlyMW, blsWages]) => {
+      const data = { geoJson, slideData, atlasData, layoffsData, energyData, aterioStates, aterioYearlyMW, blsWages };
 
       setupNavigation();
       renderSlide(data);

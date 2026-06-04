@@ -193,7 +193,8 @@ body::after {
 /* ── Slide 2 custom layout ─────────────────────────── */
 .dashboard-grid,
 #slide-2-layout,
-#slide-3-layout {
+#slide-3-layout,
+#slide-4-layout {
   flex: 1;
   min-height: 800px;
 }
@@ -275,6 +276,59 @@ body::after {
 #s3-container-left,
 #s3-container-right {
   height: 320px;
+}
+
+/* ── Slide 4 — temporary worker dot blink ───────────── */
+@keyframes unit-dot-fade {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.2; }
+}
+.unit-dot-temp {
+  animation: unit-dot-fade 1.8s ease-in-out infinite;
+}
+
+/* ── Slide 4 custom layout ─────────────────────────── */
+#slide-4-layout {
+  display: none;
+  grid-template-columns: 6fr 12fr 4fr;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.s4-sidebar,
+.s4-charts,
+.s4-kpis {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.s4-narrative {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.5rem;
+}
+
+.s4-chart-card {
+  display: flex;
+  flex-direction: column;
+}
+
+#s4-container-slope  { height: 320px; }
+#s4-container-wages  { height: 280px; }
+
+@media (max-width: 1024px) {
+  #slide-4-layout { grid-template-columns: 1fr; min-height: auto; }
+  #s4-container-sankey, #s4-container-wages { height: 260px; }
+  .s4-kpis { flex-direction: row; flex-wrap: wrap; }
+  .s4-kpis .metric-card { flex: 1; min-width: 140px; }
+}
+
+@media (max-width: 768px) {
+  #s4-container-sankey, #s4-container-wages { height: 220px; }
+  .s4-kpis { flex-direction: column; }
 }
 
 /* Charts grid column layout per slide */

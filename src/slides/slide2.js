@@ -7,16 +7,16 @@ import { normalizeStage } from '../utils/helpers.js';
 
 export const narrative = {
   lbl: "Exhibit 2: - Tech Layoffs",
-  title: "Corporate Gain vs. Stable Labor",
+  title: "The K-Shaped Economy",
   body: `
     <p>Tech giants are investing billions in new data center physical assets, but are simultaneously conducting workforce cuts, shedding hundreds of thousands of jobs.</p>
     <ul class="narrative-bullets">
       <li><strong>Diverging trends:</strong> From 2020 to 2026, U.S. data center power capacity tripled from 19 GW to 59 GW — while tech layoffs surged past 655,000 cumulative cuts.</li>
-      <li><strong>Automated over human:</strong> Capital expenditure is skewed towards high-margin computing assets rather than preserving stable human employment.</li>
-      <li><strong>Core tech leads recent cuts:</strong> The scatter plot showcases core tech sectors — AI, Hardware, Infrastructure, Security, Data, Crypto, and Product. The largest events are dominated by giants: Intel (22K, Hardware), Dell (11K, Hardware), and Cisco (4K, Infrastructure), alongside major cybersecurity and AI firms. These profitable companies are expanding physical hardware assets while reducing stable human labor.</li>
+      <li><strong>Human Replacement:</strong> Capital expenditure is skewed towards high-margin computing assets rather than preserving human employment.</li>
+      <li><strong>Cuts in Spite of Profit:</strong> The scatter plot showcases core tech sectors — AI, Hardware, Infrastructure, Security, Data, Crypto, and Product. The largest events are dominated by giants: Intel (22K, Hardware), Dell (11K, Hardware), and Cisco (4K, Infrastructure), alongside major cybersecurity and AI firms. The companies cut jobs despite record profits.</li>
     </ul>
   `,
-  takeawayTitle: "Conclusive Takeaway: Automated Capital Gain",
+  takeawayTitle: "Conclusive Takeaway: Capital Benefits, Labor Loses",
   takeawayText: "Data centers represent automated, capital-heavy corporate expansion, not human labor security. Tech giants are expanding physical hardware assets while cutting human labor, showing data center booms provide zero job security."
 };
 
@@ -305,14 +305,14 @@ export function render({ layoffsData, aterioYearlyMW }) {
   }
 
   // Wire up button handlers
-  d3.selectAll('#group-toggle-x button').on('click', function() {
+  d3.selectAll('#group-toggle-x button').on('click', function () {
     d3.selectAll('#group-toggle-x button').classed('active', false);
     d3.select(this).classed('active', true);
     activeX = d3.select(this).attr('data-val');
     updateScatterConfig();
   });
 
-  d3.selectAll('#group-toggle-y button').on('click', function() {
+  d3.selectAll('#group-toggle-y button').on('click', function () {
     d3.selectAll('#group-toggle-y button').classed('active', false);
     d3.select(this).classed('active', true);
     activeY = d3.select(this).attr('data-val');

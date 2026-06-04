@@ -5,39 +5,39 @@ import { animateNarrative } from '../utils/animate-narrative.js';
 import { tooltip } from '../utils/helpers.js';
 
 export const narrative = {
-  lbl: "Exhibit 4: Rebuttal — The Jobs Myth",
-  title: "GDP Illusions & Job Skew",
+  lbl: "Exhibit 4: Rebuttal — The New Jobs Myth",
+  title: "The Mirage of High-Paying Tech Jobs",
   body: `
-    <p>When lobbying for tax subsidies, proponents promise an economic boom of high-paying tech jobs. BLS 2025 data shows what actually gets created.</p>
+    <p>When lobbying for tax subsidies, companies promise an economic boom of high-paying tech jobs. But BLS 2025 data shows what actually gets created.</p>
     <ul class="narrative-bullets">
-      <li><strong>Temporary Roles · 80%:</strong> Electricians, HVAC mechanics, and temp laborers earn $36–62k and leave after 12–18 months. The build is local. The workforce is not.</li>
-      <li><strong>Low-Wage Permanent · 15%:</strong> Security guards at $37,350/yr make up the bulk of lasting local employment — not the tech salaries cited in lobbying pitches.</li>
-      <li><strong>Skilled Permanent · 5%:</strong> Only IT admins resemble the promised tech roles — at $99k, still 27% below the software developer median.</li>
+      <li><strong>Migrant Workers:</strong> Electricians, HVAC mechanics, and temp laborers earn $36–62k and leave after 12–18 months. They do not have an opportunity for job security, and most are employed as independent contractors.</li>
+      <li><strong>Mall Cop Employment:</strong> Security guards at $37,350/yr make up the bulk of lasting local employment, which is far below the average US wage.</li>
+      <li><strong>Technicians instead of Engineers:</strong> Only IT staff beat the average at $99k, but are still 27% below the software developer median.</li>
     </ul>
   `,
-  takeawayTitle: "Conclusive Takeaway: A Local Net Economic Drain",
-  takeawayText: "The average data center job pays $49k. The jobs that stay pay $53k. Neither figure resembles the $136k software developer economy communities were lobbied with."
+  takeawayTitle: "Conclusive Takeaway: Lowering the Bar",
+  takeawayText: "The average data center job pays $49k. The jobs that stay pay $53k. Both figures are well below the average US wage, and do not resemble the $136k software developer economy communities are lobbied with."
 };
 
 const _s4Metrics = new MetricCards({
   overallTotal: 'kpi-s4-1',
-  peakValue:    'kpi-s4-2',
-  activeCount:  'kpi-s4-3'
+  peakValue: 'kpi-s4-2',
+  activeCount: 'kpi-s4-3'
 });
 
 let _cycleInterval2 = null;
-let _cycleTimeout2  = null;
-let _cycleMetrics   = null;
-let _workforceObserver   = null;
+let _cycleTimeout2 = null;
+let _cycleMetrics = null;
+let _workforceObserver = null;
 let _workforceBlinkTimer = null;
 let _splitCards = [];
 let _cycleIdx2 = 0;
 
 function _clearTimers() {
   if (_cycleInterval2) clearInterval(_cycleInterval2);
-  if (_cycleTimeout2)  clearTimeout(_cycleTimeout2);
+  if (_cycleTimeout2) clearTimeout(_cycleTimeout2);
   _cycleInterval2 = null;
-  _cycleTimeout2  = null;
+  _cycleTimeout2 = null;
 }
 
 function _tickSplit() {
@@ -49,8 +49,8 @@ function _tickSplit() {
 
 const _UNIT_COLORS = {
   construction: { 'Temp Laborer': '#ff8c42', 'Electrician': '#ffb347', 'HVAC Mechanic': '#ffd06a' },
-  operations:   { default: '#ff4d6d' },
-  skilled:      { default: '#4facfe' },
+  operations: { default: '#ff4d6d' },
+  skilled: { default: '#4facfe' },
 };
 
 function _drawWorkforceChart(container, blsWages) {
@@ -58,7 +58,7 @@ function _drawWorkforceChart(container, blsWages) {
   if (_workforceBlinkTimer) { clearTimeout(_workforceBlinkTimer); _workforceBlinkTimer = null; }
   container.innerHTML = '';
 
-  const W = container.clientWidth  || 520;
+  const W = container.clientWidth || 520;
   const H = container.clientHeight || 320;
 
   // Build 500 unit array ordered: construction → operations → skilled (each pct × 5)
@@ -82,13 +82,13 @@ function _drawWorkforceChart(container, blsWages) {
   // Grid: 50 cols × 10 rows = 500 units
   const COLS = 50, ROWS = 10;
   const LEGEND_H = 76;
-  const availH   = H - LEGEND_H - 8;
-  const cellSize  = Math.min(Math.floor(W / COLS), Math.floor(availH / ROWS));
-  const dotR      = cellSize * 0.36;
-  const gridW     = COLS * cellSize;
-  const gridH     = ROWS * cellSize;
-  const ox        = (W - gridW) / 2;
-  const oy        = Math.max(4, (H - gridH - LEGEND_H) / 2);
+  const availH = H - LEGEND_H - 8;
+  const cellSize = Math.min(Math.floor(W / COLS), Math.floor(availH / ROWS));
+  const dotR = cellSize * 0.36;
+  const gridW = COLS * cellSize;
+  const gridH = ROWS * cellSize;
+  const ox = (W - gridW) / 2;
+  const oy = Math.max(4, (H - gridH - LEGEND_H) / 2);
 
   const svg = d3.select(container).append('svg')
     .attr('width', W).attr('height', H).attr('class', 'd3-chart');
@@ -112,7 +112,7 @@ function _drawWorkforceChart(container, blsWages) {
     .style('cursor', 'pointer');
 
   dots
-    .on('mouseover', function(event, d) {
+    .on('mouseover', function (event, d) {
       d3.select(this).transition().duration(110).attr('r', dotR * 1.45);
       tooltip.show(`
         <div class="d3-tooltip-title" style="color:${d.color}">${d.role}</div>
@@ -124,7 +124,7 @@ function _drawWorkforceChart(container, blsWages) {
       `, event);
     })
     .on('mousemove', event => tooltip.move(event))
-    .on('mouseout', function() {
+    .on('mouseout', function () {
       d3.select(this).transition().duration(110).attr('r', dotR);
       tooltip.hide();
     });
@@ -150,15 +150,15 @@ function _drawWorkforceChart(container, blsWages) {
       label: 'Construction · 80%',
       color: '#ffb347',
       roles: [
-        { role: 'Temp Laborer',  color: '#ff8c42' },
-        { role: 'Electrician',   color: '#ffb347' },
+        { role: 'Temp Laborer', color: '#ff8c42' },
+        { role: 'Electrician', color: '#ffb347' },
         { role: 'HVAC Mechanic', color: '#ffd06a' },
       ],
     },
     {
       label: 'Security · 15%',
       color: '#ff4d6d',
-      roles: [{ role: 'Security Guard',     color: '#ff4d6d' }],
+      roles: [{ role: 'Security Guard', color: '#ff4d6d' }],
     },
     {
       label: 'Skilled IT · 5%',
@@ -168,7 +168,7 @@ function _drawWorkforceChart(container, blsWages) {
   ];
 
   const legendY = oy + gridH + 26;
-  const colW    = W / legendGroups.length;
+  const colW = W / legendGroups.length;
 
   legendGroups.forEach((grp, gi) => {
     const gx = gi * colW + 10;
@@ -214,14 +214,14 @@ export function updateKPIs(metrics, { blsWages }) {
 
   // Card 2 — workforce composition split (cycling)
   _splitCards = [
-    { label: 'Temporary Roles',    pct: 80, trend: 'Vanish in 12–18 months' },
+    { label: 'Temporary Roles', pct: 80, trend: 'Vanish in 12–18 months' },
     { label: 'Low-Wage Permanent', pct: 15, trend: 'Security & custodial' },
-    { label: 'Skilled Permanent',  pct: 5,  trend: 'IT admins & systems' },
+    { label: 'Skilled Permanent', pct: 5, trend: 'IT admins & systems' },
   ];
 
   // Card 3 — weighted average wage of permanent roles only (static)
-  const permRoles   = nonBenchmark.filter(d => d.duration === 'permanent');
-  const permPctSum  = permRoles.reduce((s, d) => s + d.pct, 0);
+  const permRoles = nonBenchmark.filter(d => d.duration === 'permanent');
+  const permPctSum = permRoles.reduce((s, d) => s + d.pct, 0);
   const permAvgWage = Math.round(
     permRoles.reduce((sum, d) => sum + (d.pct / permPctSum) * d.wage, 0)
   );
@@ -229,9 +229,9 @@ export function updateKPIs(metrics, { blsWages }) {
   const initSplit = _splitCards[0];
 
   const payload = {
-    overallTotal: { label: 'Avg. Wage of Jobs Created', value: avgWage,    trend: 'Weighted across all roles & workforce shares', trendDirection: 'down', prefix: '$', raw: true },
-    peakValue:    { label: initSplit.label,              value: initSplit.pct, trend: initSplit.trend, trendDirection: 'down', suffix: '%' },
-    activeCount:  { label: 'Avg. Permanent Wage',        value: permAvgWage, trend: 'After construction clears in 18 months',    trendDirection: 'down', prefix: '$', raw: true },
+    overallTotal: { label: 'Avg. Wage of Jobs Created', value: avgWage, trend: 'Weighted across all roles & workforce shares', trendDirection: 'down', prefix: '$', raw: true },
+    peakValue: { label: initSplit.label, value: initSplit.pct, trend: initSplit.trend, trendDirection: 'down', suffix: '%' },
+    activeCount: { label: 'Avg. Permanent Wage', value: permAvgWage, trend: 'After construction clears in 18 months', trendDirection: 'down', prefix: '$', raw: true },
   };
   metrics.update(payload);
   _s4Metrics.update(payload);
@@ -249,12 +249,12 @@ export function render({ blsWages }) {
   if (s4) s4.style.display = 'grid';
 
   // Narrative
-  document.getElementById('s4-narrative-lbl').textContent   = narrative.lbl;
+  document.getElementById('s4-narrative-lbl').textContent = narrative.lbl;
   document.getElementById('s4-narrative-title').textContent = narrative.title;
-  document.getElementById('s4-narrative-body').innerHTML    = narrative.body;
+  document.getElementById('s4-narrative-body').innerHTML = narrative.body;
   animateNarrative(document.getElementById('s4-narrative-body'));
-  document.getElementById('s4-takeaway-title').textContent  = narrative.takeawayTitle;
-  document.getElementById('s4-takeaway-text').textContent   = narrative.takeawayText;
+  document.getElementById('s4-takeaway-title').textContent = narrative.takeawayTitle;
+  document.getElementById('s4-takeaway-text').textContent = narrative.takeawayText;
 
   if (!blsWages) return;
 
@@ -274,9 +274,9 @@ export function render({ blsWages }) {
     .map(d => ({ role: d.role, wage: d.wage, category: d.category }));
 
   const catColor = {
-    skilled:      'var(--accent-primary)',
+    skilled: 'var(--accent-primary)',
     construction: 'var(--accent-warning)',
-    operations:   'var(--accent-danger)'
+    operations: 'var(--accent-danger)'
   };
 
   const wageChart = new BarChart('#s4-container-wages', {
@@ -315,7 +315,7 @@ export function render({ blsWages }) {
 
 export function cleanup() {
   _clearTimers();
-  if (_workforceObserver)   { _workforceObserver.disconnect(); _workforceObserver = null; }
+  if (_workforceObserver) { _workforceObserver.disconnect(); _workforceObserver = null; }
   if (_workforceBlinkTimer) { clearTimeout(_workforceBlinkTimer); _workforceBlinkTimer = null; }
   const s4 = document.getElementById('slide-4-layout');
   const dg = document.querySelector('.dashboard-grid');

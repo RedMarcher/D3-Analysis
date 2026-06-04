@@ -6,17 +6,17 @@ import { calculateTotalGeneration } from '../utils/helpers.js';
 
 export const narrative = {
   lbl: "Exhibit 3: Grid Burden",
-  title: "Energy Demands & Carbon Subsidies",
+  title: "A Dirty Foundation",
   body: `
     <p>Data center electricity demand is growing exponentially — while the grid it draws from has stayed relatively flat and remains heavily fossil-fueled.</p>
     <ul class="narrative-bullets">
-      <li><strong>Catching Up Fast:</strong> U.S. grid output has hovered near 4,000 TWh/year for two decades. Data center demand, once negligible, could reach over 2,000 TWh/year by 2030 under full pipeline buildout — nearly half the current grid.</li>
-      <li><strong>Still a Fossil Grid:</strong> The source breakdown shows coal declining, but natural gas remains the dominant fuel. Solar and wind are rising yet still a fraction — meaning most new data center load is served by fossil fuels today.</li>
-      <li><strong>Baseload, Not Peaky:</strong> Unlike homes, data centers run 24/7 at constant draw. That steady baseload demand keeps gas plants running continuously and undermines the economics of intermittent renewables.</li>
+      <li><strong>Explosive Demand:</strong> U.S. grid output has hovered near 4,000 TWh/year for two decades. Data center demand, once negligible, could reach over 2,000 TWh/year by 2030 under full pipeline buildout — nearly half the current grid.</li>
+      <li><strong>Fossil Fuel Driven Growth:</strong> The source breakdown shows coal declining, but natural gas remains the dominant fuel. Solar and wind are rising yet still a fraction — meaning most new data center load is served by fossil fuels today.</li>
+      <li><strong>Incompatible Power Draw:</strong> Unlike homes, data centers run 24/7 at constant power draw. That steady baseload demand keeps gas plants running continuously and undermines the economics of intermittent renewable energy.</li>
     </ul>
   `,
-  takeawayTitle: "Conclusive Takeaway: A Fossil-Fueled Surge",
-  takeawayText: "Data centers aren't just growing — they're growing faster than the grid can decarbonize. Exponential demand layered on a still gas-heavy supply mix makes the AI infrastructure boom a direct accelerant of fossil fuel dependency."
+  takeawayTitle: "Conclusive Takeaway: Supercharging the Climate Crisis",
+  takeawayText: "Data centers are growing at an explosive rate, far outpacing the grid's ability to decarbonize. Exponential demand layered on a fossil-heavy supply mix supercharges the climate crisis."
 };
 
 const _s3Metrics = new MetricCards({
@@ -26,16 +26,16 @@ const _s3Metrics = new MetricCards({
 });
 
 let _cycleInterval1 = null, _cycleInterval2 = null, _cycleInterval3 = null;
-let _cycleTimeout2  = null, _cycleTimeout3  = null;
-let _cycleMetrics   = null;
+let _cycleTimeout2 = null, _cycleTimeout3 = null;
+let _cycleMetrics = null;
 let _fossilByYear = [], _sourceBreakdown = [], _dcDemand = [];
 let _cycleIdx1 = 0, _cycleIdx2 = 0, _cycleIdx3 = 0;
 
 function _clearTimers() {
   [_cycleInterval1, _cycleInterval2, _cycleInterval3].forEach(t => t && clearInterval(t));
-  [_cycleTimeout2,  _cycleTimeout3 ].forEach(t => t && clearTimeout(t));
+  [_cycleTimeout2, _cycleTimeout3].forEach(t => t && clearTimeout(t));
   _cycleInterval1 = _cycleInterval2 = _cycleInterval3 = null;
-  _cycleTimeout2  = _cycleTimeout3  = null;
+  _cycleTimeout2 = _cycleTimeout3 = null;
 }
 
 function _tickFossil() {
@@ -68,7 +68,7 @@ export function updateKPIs(metrics, { energyData, aterioYearlyMW }) {
     if (!row) return null;
     const total = calculateTotalGeneration(row);
     const coalPct = ((+row.Coal / total) * 100).toFixed(0);
-    const gasPct  = ((+row.Gas  / total) * 100).toFixed(0);
+    const gasPct = ((+row.Gas / total) * 100).toFixed(0);
     return { year: yr, pct: +(((+row.Coal + +row.Gas) / total) * 100).toFixed(1), trend: `Coal ${coalPct}% · Gas ${gasPct}%` };
   }).filter(Boolean);
 
@@ -77,10 +77,10 @@ export function updateKPIs(metrics, { energyData, aterioYearlyMW }) {
   const total23 = usa2023 ? calculateTotalGeneration(usa2023) : 1;
   _sourceBreakdown = usa2023 ? [
     { label: 'Clean Green Ratio', pct: +(((+usa2023.Solar + +usa2023.Wind + +usa2023.Hydro) / total23) * 100).toFixed(1), trend: 'Solar + Wind + Hydro', dir: 'up' },
-    { label: 'Solar Share',       pct: +((+usa2023.Solar / total23) * 100).toFixed(1), trend: 'Utility-scale + rooftop', dir: 'up' },
-    { label: 'Wind Share',        pct: +((+usa2023.Wind  / total23) * 100).toFixed(1), trend: 'Onshore + offshore',      dir: 'up' },
-    { label: 'Hydro Share',       pct: +((+usa2023.Hydro / total23) * 100).toFixed(1), trend: 'Conventional hydro',      dir: 'neutral' },
-    { label: 'Nuclear Base',      pct: +((+usa2023.Nuclear / total23) * 100).toFixed(1), trend: 'Low-carbon baseload',   dir: 'up' },
+    { label: 'Solar Share', pct: +((+usa2023.Solar / total23) * 100).toFixed(1), trend: 'Utility-scale + rooftop', dir: 'up' },
+    { label: 'Wind Share', pct: +((+usa2023.Wind / total23) * 100).toFixed(1), trend: 'Onshore + offshore', dir: 'up' },
+    { label: 'Hydro Share', pct: +((+usa2023.Hydro / total23) * 100).toFixed(1), trend: 'Conventional hydro', dir: 'neutral' },
+    { label: 'Nuclear Base', pct: +((+usa2023.Nuclear / total23) * 100).toFixed(1), trend: 'Low-carbon baseload', dir: 'up' },
   ] : [];
 
   // ── Card 3: DC demand growth by year ───────────────────────────────────────
@@ -96,14 +96,14 @@ export function updateKPIs(metrics, { energyData, aterioYearlyMW }) {
   }).filter(Boolean) : [];
 
   // ── Initial display ─────────────────────────────────────────────────────────
-  const initFossil  = _fossilByYear.find(d => d.year === '2023') || _fossilByYear.at(-1);
-  const initSource  = _sourceBreakdown[0];
-  const initDC      = _dcDemand.find(d => d.label.includes('2023')) || _dcDemand[0];
+  const initFossil = _fossilByYear.find(d => d.year === '2023') || _fossilByYear.at(-1);
+  const initSource = _sourceBreakdown[0];
+  const initDC = _dcDemand.find(d => d.label.includes('2023')) || _dcDemand[0];
 
   const payload = {
     overallTotal: { label: `Fossil Fuel (${initFossil?.year})`, value: initFossil?.pct ?? 58, trend: initFossil?.trend ?? '', trendDirection: 'neutral', suffix: '%' },
-    peakValue:    { label: initSource?.label ?? 'Clean Green Ratio', value: initSource?.pct ?? 22, trend: initSource?.trend ?? '', trendDirection: 'up', suffix: '%' },
-    activeCount:  { label: initDC?.label ?? 'DC Demand 2023', value: initDC?.twh ?? 251, trend: initDC?.trend ?? '', trendDirection: 'up', raw: true }
+    peakValue: { label: initSource?.label ?? 'Clean Green Ratio', value: initSource?.pct ?? 22, trend: initSource?.trend ?? '', trendDirection: 'up', suffix: '%' },
+    activeCount: { label: initDC?.label ?? 'DC Demand 2023', value: initDC?.twh ?? 251, trend: initDC?.trend ?? '', trendDirection: 'up', raw: true }
   };
   metrics.update(payload);
   _s3Metrics.update(payload);
@@ -113,8 +113,8 @@ export function updateKPIs(metrics, { energyData, aterioYearlyMW }) {
   _cycleIdx1 = 0; _cycleIdx2 = 1; _cycleIdx3 = 1;
 
   _cycleInterval1 = setInterval(_tickFossil, 3000);
-  _cycleTimeout2  = setTimeout(() => { _cycleInterval2 = setInterval(_tickSource, 3000); }, 1000);
-  _cycleTimeout3  = setTimeout(() => { _cycleInterval3 = setInterval(_tickDC,     3000); }, 2000);
+  _cycleTimeout2 = setTimeout(() => { _cycleInterval2 = setInterval(_tickSource, 3000); }, 1000);
+  _cycleTimeout3 = setTimeout(() => { _cycleInterval3 = setInterval(_tickDC, 3000); }, 2000);
 }
 
 export function render({ energyData, aterioYearlyMW }) {

@@ -2,6 +2,22 @@ import * as d3 from 'd3';
 import { LineChart } from '../components/line-chart.js';
 import { MetricCards } from '../components/metric-cards.js';
 import { animateNarrative } from '../utils/animate-narrative.js';
+import { calculateTotalGeneration } from '../utils/helpers.js';
+
+export const narrative = {
+  lbl: "Exhibit 3: Grid Burden",
+  title: "Energy Demands & Carbon Subsidies",
+  body: `
+    <p>Data center electricity demand is growing exponentially — while the grid it draws from has stayed relatively flat and remains heavily fossil-fueled.</p>
+    <ul class="narrative-bullets">
+      <li><strong>Catching Up Fast:</strong> U.S. grid output has hovered near 4,000 TWh/year for two decades. Data center demand, once negligible, could reach over 2,000 TWh/year by 2030 under full pipeline buildout — nearly half the current grid.</li>
+      <li><strong>Still a Fossil Grid:</strong> The source breakdown shows coal declining, but natural gas remains the dominant fuel. Solar and wind are rising yet still a fraction — meaning most new data center load is served by fossil fuels today.</li>
+      <li><strong>Baseload, Not Peaky:</strong> Unlike homes, data centers run 24/7 at constant draw. That steady baseload demand keeps gas plants running continuously and undermines the economics of intermittent renewables.</li>
+    </ul>
+  `,
+  takeawayTitle: "Conclusive Takeaway: A Fossil-Fueled Surge",
+  takeawayText: "Data centers aren't just growing — they're growing faster than the grid can decarbonize. Exponential demand layered on a still gas-heavy supply mix makes the AI infrastructure boom a direct accelerant of fossil fuel dependency."
+};
 
 const _s3Metrics = new MetricCards({
   overallTotal: 'kpi-s3-1',
@@ -43,26 +59,6 @@ function _tickDC() {
   _cycleIdx3 = (_cycleIdx3 + 1) % _dcDemand.length;
 }
 
-export const narrative = {
-  lbl: "Exhibit 3: Grid Burden",
-  title: "Energy Demands & Carbon Subsidies",
-  body: `
-    <p>Data center electricity demand is growing exponentially — while the grid it draws from has stayed relatively flat and remains heavily fossil-fueled.</p>
-    <ul class="narrative-bullets">
-      <li><strong>Catching Up Fast:</strong> U.S. grid output has hovered near 4,000 TWh/year for two decades. Data center demand, once negligible, could reach over 2,000 TWh/year by 2030 under full pipeline buildout — nearly half the current grid.</li>
-      <li><strong>Still a Fossil Grid:</strong> The source breakdown shows coal declining, but natural gas remains the dominant fuel. Solar and wind are rising yet still a fraction — meaning most new data center load is served by fossil fuels today.</li>
-      <li><strong>Baseload, Not Peaky:</strong> Unlike homes, data centers run 24/7 at constant draw. That steady baseload demand keeps gas plants running continuously and undermines the economics of intermittent renewables.</li>
-    </ul>
-  `,
-  takeawayTitle: "Conclusive Takeaway: A Fossil-Fueled Surge",
-  takeawayText: "Data centers aren't just growing — they're growing faster than the grid can decarbonize. Exponential demand layered on a still gas-heavy supply mix makes the AI infrastructure boom a direct accelerant of fossil fuel dependency."
-};
-
-function _totalGen(row) {
-  return +row.Coal + +row.Gas + +row.Nuclear + +row.Hydro +
-    +row.Solar + +row.Wind + +row.Oil + +row.Bioenergy + +(row['Other renewables'] || 0);
-}
-
 export function updateKPIs(metrics, { energyData, aterioYearlyMW }) {
   _clearTimers();
 
@@ -70,7 +66,7 @@ export function updateKPIs(metrics, { energyData, aterioYearlyMW }) {
   _fossilByYear = ['2000', '2005', '2010', '2015', '2020', '2023'].map(yr => {
     const row = energyData?.find(d => d.Code === 'USA' && d.Year === yr);
     if (!row) return null;
-    const total = _totalGen(row);
+    const total = calculateTotalGeneration(row);
     const coalPct = ((+row.Coal / total) * 100).toFixed(0);
     const gasPct  = ((+row.Gas  / total) * 100).toFixed(0);
     return { year: yr, pct: +(((+row.Coal + +row.Gas) / total) * 100).toFixed(1), trend: `Coal ${coalPct}% · Gas ${gasPct}%` };
@@ -78,7 +74,7 @@ export function updateKPIs(metrics, { energyData, aterioYearlyMW }) {
 
   // ── Card 2: clean source breakdown in 2023 ─────────────────────────────────
   const usa2023 = energyData?.find(d => d.Code === 'USA' && d.Year === '2023');
-  const total23 = usa2023 ? _totalGen(usa2023) : 1;
+  const total23 = usa2023 ? calculateTotalGeneration(usa2023) : 1;
   _sourceBreakdown = usa2023 ? [
     { label: 'Clean Green Ratio', pct: +(((+usa2023.Solar + +usa2023.Wind + +usa2023.Hydro) / total23) * 100).toFixed(1), trend: 'Solar + Wind + Hydro', dir: 'up' },
     { label: 'Solar Share',       pct: +((+usa2023.Solar / total23) * 100).toFixed(1), trend: 'Utility-scale + rooftop', dir: 'up' },
@@ -121,14 +117,6 @@ export function updateKPIs(metrics, { energyData, aterioYearlyMW }) {
   _cycleTimeout3  = setTimeout(() => { _cycleInterval3 = setInterval(_tickDC,     3000); }, 2000);
 }
 
-export function cleanup() {
-  _clearTimers();
-  const s3 = document.getElementById('slide-3-layout');
-  const dg = document.querySelector('.dashboard-grid');
-  if (s3) s3.style.display = 'none';
-  if (dg) dg.style.display = '';
-}
-
 export function render({ energyData, aterioYearlyMW }) {
   // Switch to slide 3 layout
   const s3 = document.getElementById('slide-3-layout');
@@ -150,8 +138,7 @@ export function render({ energyData, aterioYearlyMW }) {
 
   const realTotals = [];
   gridRows.forEach(row => {
-    const total = +row.Coal + +row.Gas + +row.Nuclear + +row.Hydro +
-      +row.Solar + +row.Wind + +row.Oil + +row.Bioenergy + +(row['Other renewables'] || 0);
+    const total = calculateTotalGeneration(row);
     if (!isNaN(total) && total > 0) {
       comparisonData.push({ date: `${row.Year}/01/01`, value: Math.round(total), series: 'US Grid Total' });
       realTotals.push({ year: +row.Year, total });
@@ -224,4 +211,12 @@ export function render({ energyData, aterioYearlyMW }) {
     inlineLegend: true
   });
   rightChart.update(sourcesData);
+}
+
+export function cleanup() {
+  _clearTimers();
+  const s3 = document.getElementById('slide-3-layout');
+  const dg = document.querySelector('.dashboard-grid');
+  if (s3) s3.style.display = 'none';
+  if (dg) dg.style.display = '';
 }

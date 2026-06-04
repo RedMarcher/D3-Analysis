@@ -65,16 +65,6 @@ function _clearTimers() {
   if (_cycleTimeout2) { clearTimeout(_cycleTimeout2); _cycleTimeout2 = null; }
 }
 
-export function cleanup() {
-  _clearTimers();
-  const grid = document.querySelector('.charts-grid');
-  grid.classList.remove('shrink-rows', 's1-mode');
-  document.getElementById('supporting-chart-card').classList.remove('hidden');
-  document.getElementById('map-detail-panel').classList.remove('active');
-  const badge = document.getElementById('map-overlay-source');
-  if (badge) badge.classList.remove('visible');
-}
-
 export function updateKPIs(metrics, { aterioStates }) {
   _clearTimers();
   if (!aterioStates) return;
@@ -264,3 +254,14 @@ export function render({ containerLeft, geoJson, atlasData, aterioStates, showFa
   d3.select('#btn-zoom-out').on('click', () => usMap.zoomOut());
   d3.select('#btn-reset-zoom').on('click', () => usMap.resetZoom());
 }
+
+export function cleanup() {
+  _clearTimers();
+  const grid = document.querySelector('.charts-grid');
+  grid.classList.remove('shrink-rows', 's1-mode');
+  document.getElementById('supporting-chart-card').classList.remove('hidden');
+  document.getElementById('map-detail-panel').classList.remove('active');
+  const badge = document.getElementById('map-overlay-source');
+  if (badge) badge.classList.remove('visible');
+}
+

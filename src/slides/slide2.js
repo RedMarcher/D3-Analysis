@@ -3,6 +3,22 @@ import { LineChart } from '../components/line-chart.js';
 import { ScatterPlot } from '../components/scatter-plot.js';
 import { MetricCards } from '../components/metric-cards.js';
 import { animateNarrative } from '../utils/animate-narrative.js';
+import { normalizeStage } from '../utils/helpers.js';
+
+export const narrative = {
+  lbl: "Exhibit 2: - Tech Layoffs",
+  title: "Corporate Gain vs. Stable Labor",
+  body: `
+    <p>Tech giants are investing billions in new data center physical assets, but are simultaneously conducting workforce cuts, shedding hundreds of thousands of jobs.</p>
+    <ul class="narrative-bullets">
+      <li><strong>Diverging trends:</strong> From 2020 to 2026, U.S. data center power capacity tripled from 19 GW to 59 GW — while tech layoffs surged past 655,000 cumulative cuts.</li>
+      <li><strong>Automated over human:</strong> Capital expenditure is skewed towards high-margin computing assets rather than preserving stable human employment.</li>
+      <li><strong>Core tech leads recent cuts:</strong> The scatter plot showcases core tech sectors — AI, Hardware, Infrastructure, Security, Data, Crypto, and Product. The largest events are dominated by giants: Intel (22K, Hardware), Dell (11K, Hardware), and Cisco (4K, Infrastructure), alongside major cybersecurity and AI firms. These profitable companies are expanding physical hardware assets while reducing stable human labor.</li>
+    </ul>
+  `,
+  takeawayTitle: "Conclusive Takeaway: Automated Capital Gain",
+  takeawayText: "Data centers represent automated, capital-heavy corporate expansion, not human labor security. Tech giants are expanding physical hardware assets while cutting human labor, showing data center booms provide zero job security."
+};
 
 let _cycleInterval = null;
 let _cycleMetrics = null;
@@ -29,29 +45,6 @@ function _tickYear() {
   });
   _cycleIdx = (_cycleIdx + 1) % _recentYears.length;
 }
-
-export function cleanup() {
-  if (_cycleInterval) { clearInterval(_cycleInterval); _cycleInterval = null; }
-  const s2 = document.getElementById('slide-2-layout');
-  const dg = document.querySelector('.dashboard-grid');
-  if (s2) s2.style.display = 'none';
-  if (dg) dg.style.display = '';
-}
-
-export const narrative = {
-  lbl: "Exhibit 2: - Tech Layoffs",
-  title: "Corporate Gain vs. Stable Labor",
-  body: `
-    <p>Tech giants are investing billions in new data center physical assets, but are simultaneously conducting workforce cuts, shedding hundreds of thousands of jobs.</p>
-    <ul class="narrative-bullets">
-      <li><strong>Diverging trends:</strong> From 2020 to 2026, U.S. data center power capacity tripled from 19 GW to 59 GW — while tech layoffs surged past 655,000 cumulative cuts.</li>
-      <li><strong>Automated over human:</strong> Capital expenditure is skewed towards high-margin computing assets rather than preserving stable human employment.</li>
-      <li><strong>Core tech leads recent cuts:</strong> The scatter plot showcases core tech sectors — AI, Hardware, Infrastructure, Security, Data, Crypto, and Product. The largest events are dominated by giants: Intel (22K, Hardware), Dell (11K, Hardware), and Cisco (4K, Infrastructure), alongside major cybersecurity and AI firms. These profitable companies are expanding physical hardware assets while reducing stable human labor.</li>
-    </ul>
-  `,
-  takeawayTitle: "Conclusive Takeaway: Automated Capital Gain",
-  takeawayText: "Data centers represent automated, capital-heavy corporate expansion, not human labor security. Tech giants are expanding physical hardware assets while cutting human labor, showing data center booms provide zero job security."
-};
 
 function buildTimeseries(layoffsData, aterioYearlyMW) {
   // Aggregate layoffs by quarter (exact dates available in layoffs.fyi data)
@@ -196,13 +189,6 @@ export function render({ layoffsData, aterioYearlyMW }) {
   ];
   const parseDate = d3.timeParse('%m/%d/%Y');
 
-  function normalizeStage(s) {
-    if (!s) return null;
-    const STAGE_ORDER = ['Seed', 'Series A', 'Series B', 'Series C', 'Series D+', 'Acquired', 'Private Equity', 'Post-IPO'];
-    if (['Series D', 'Series E', 'Series F', 'Series G', 'Series H', 'Series I'].includes(s)) return 'Series D+';
-    return STAGE_ORDER.includes(s) ? s : null;
-  }
-
   // Parse all layoffs data focusing on US core Tech sectors only
   const processedLayoffs = layoffsData.map((d, index) => ({
     id: `layoff-${index}`,
@@ -332,4 +318,12 @@ export function render({ layoffsData, aterioYearlyMW }) {
     activeY = d3.select(this).attr('data-val');
     updateScatterConfig();
   });
+}
+
+export function cleanup() {
+  if (_cycleInterval) { clearInterval(_cycleInterval); _cycleInterval = null; }
+  const s2 = document.getElementById('slide-2-layout');
+  const dg = document.querySelector('.dashboard-grid');
+  if (s2) s2.style.display = 'none';
+  if (dg) dg.style.display = '';
 }

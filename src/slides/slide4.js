@@ -19,7 +19,6 @@ export const narrative = {
   takeawayText: "The average data center job pays $49k. The jobs that stay pay $53k. Neither figure resembles the $136k software developer economy communities were lobbied with."
 };
 
-// ── KPI cycling state ──────────────────────────────────────────────────────────
 const _s4Metrics = new MetricCards({
   overallTotal: 'kpi-s4-1',
   peakValue:    'kpi-s4-2',
@@ -48,130 +47,6 @@ function _tickSplit() {
   _cycleIdx2 = (_cycleIdx2 + 1) % _splitCards.length;
 }
 
-// ── exports ────────────────────────────────────────────────────────────────────
-export function cleanup() {
-  _clearTimers();
-  if (_workforceObserver)   { _workforceObserver.disconnect(); _workforceObserver = null; }
-  if (_workforceBlinkTimer) { clearTimeout(_workforceBlinkTimer); _workforceBlinkTimer = null; }
-  const s4 = document.getElementById('slide-4-layout');
-  const dg = document.querySelector('.dashboard-grid');
-  if (s4) s4.style.display = 'none';
-  if (dg) dg.style.display = '';
-}
-
-export function updateKPIs(metrics, { blsWages }) {
-  _clearTimers();
-  if (!blsWages) return;
-
-  const nonBenchmark = blsWages.filter(d => d.category !== 'benchmark');
-
-  // Card 1 — weighted average wage across ALL jobs created (static)
-  const avgWage = Math.round(
-    nonBenchmark.reduce((sum, d) => sum + (d.pct / 100) * d.wage, 0)
-  );
-
-  // Card 2 — workforce composition split (cycling)
-  _splitCards = [
-    { label: 'Temporary Roles',    pct: 80, trend: 'Vanish in 12–18 months' },
-    { label: 'Low-Wage Permanent', pct: 15, trend: 'Security & custodial' },
-    { label: 'Skilled Permanent',  pct: 5,  trend: 'IT admins & systems' },
-  ];
-
-  // Card 3 — weighted average wage of permanent roles only (static)
-  const permRoles   = nonBenchmark.filter(d => d.duration === 'permanent');
-  const permPctSum  = permRoles.reduce((s, d) => s + d.pct, 0);
-  const permAvgWage = Math.round(
-    permRoles.reduce((sum, d) => sum + (d.pct / permPctSum) * d.wage, 0)
-  );
-
-  const initSplit = _splitCards[0];
-
-  const payload = {
-    overallTotal: { label: 'Avg. Wage of Jobs Created', value: avgWage,    trend: 'Weighted across all roles & workforce shares', trendDirection: 'down', prefix: '$', raw: true },
-    peakValue:    { label: initSplit.label,              value: initSplit.pct, trend: initSplit.trend, trendDirection: 'down', suffix: '%' },
-    activeCount:  { label: 'Avg. Permanent Wage',        value: permAvgWage, trend: 'After construction clears in 18 months',    trendDirection: 'down', prefix: '$', raw: true },
-  };
-  metrics.update(payload);
-  _s4Metrics.update(payload);
-
-  _cycleMetrics = { update(p) { metrics.update(p); _s4Metrics.update(p); } };
-  _cycleIdx2 = 1;
-
-  _cycleTimeout2 = setTimeout(() => { _cycleInterval2 = setInterval(_tickSplit, 3000); }, 1000);
-}
-
-export function render({ blsWages }) {
-  const s4 = document.getElementById('slide-4-layout');
-  const dg = document.querySelector('.dashboard-grid');
-  if (dg) dg.style.display = 'none';
-  if (s4) s4.style.display = 'grid';
-
-  // Narrative
-  document.getElementById('s4-narrative-lbl').textContent   = narrative.lbl;
-  document.getElementById('s4-narrative-title').textContent = narrative.title;
-  document.getElementById('s4-narrative-body').innerHTML    = narrative.body;
-  animateNarrative(document.getElementById('s4-narrative-body'));
-  document.getElementById('s4-takeaway-title').textContent  = narrative.takeawayTitle;
-  document.getElementById('s4-takeaway-text').textContent   = narrative.takeawayText;
-
-  if (!blsWages) return;
-
-  // ── Workforce unit chart (responsive) ─────────────────────────────────────
-  const _wfContainer = document.getElementById('s4-container-slope');
-  _drawWorkforceChart(_wfContainer, blsWages);
-  if (_workforceObserver) _workforceObserver.disconnect();
-  _workforceObserver = new ResizeObserver(() => _drawWorkforceChart(_wfContainer, blsWages));
-  _workforceObserver.observe(_wfContainer);
-
-  // ── Wage bar chart ─────────────────────────────────────────────────────────
-  const softDev = blsWages.find(d => d.category === 'benchmark');
-
-  const wageData = [...blsWages]
-    .filter(d => d.category !== 'benchmark')
-    .sort((a, b) => b.wage - a.wage)
-    .map(d => ({ role: d.role, wage: d.wage, category: d.category }));
-
-  const catColor = {
-    skilled:      'var(--accent-primary)',
-    construction: 'var(--accent-warning)',
-    operations:   'var(--accent-danger)'
-  };
-
-  const wageChart = new BarChart('#s4-container-wages', {
-    xKey: 'wage',
-    yKey: 'role',
-    margin: { top: 28, right: 30, bottom: 40, left: 135 },
-    colors: wageData.map(d => catColor[d.category] || 'var(--accent-primary)'),
-    showValueLabels: true,
-    benchmarkLines: softDev ? [{
-      value: softDev.wage,
-      label: `Software Dev — the promise ($${Math.round(softDev.wage / 1000)}k)`,
-      color: '#05ffc8'
-    }] : [],
-    xTickFormat: d => `$${d3.format('~s')(d)}`,
-    tooltipFormatter: (d, color) => `
-      <div class="d3-tooltip-title">${d.role}</div>
-      <div class="d3-tooltip-row">
-        <span>Median annual:</span>
-        <span class="d3-tooltip-val" style="color:${color}">$${d.wage.toLocaleString()}</span>
-      </div>
-      ${softDev ? `
-      <div class="d3-tooltip-row">
-        <span>vs. promise:</span>
-        <span class="d3-tooltip-val" style="color:var(--accent-danger)">
-          –$${(softDev.wage - d.wage).toLocaleString()} (${Math.round((1 - d.wage / softDev.wage) * 100)}% less)
-        </span>
-      </div>` : ''}
-      <div class="d3-tooltip-row">
-        <span>Source:</span>
-        <span class="d3-tooltip-val" style="color:var(--text-secondary); font-size:0.75rem">BLS OEWS May 2025</span>
-      </div>
-    `
-  });
-  wageChart.update(wageData);
-}
-
-// ── Workforce unit chart ───────────────────────────────────────────────────────
 const _UNIT_COLORS = {
   construction: { 'Temp Laborer': '#ff8c42', 'Electrician': '#ffb347', 'HVAC Mechanic': '#ffd06a' },
   operations:   { default: '#ff4d6d' },
@@ -324,4 +199,126 @@ function _drawWorkforceChart(container, blsWages) {
         .text(role.role);
     });
   });
+}
+
+export function updateKPIs(metrics, { blsWages }) {
+  _clearTimers();
+  if (!blsWages) return;
+
+  const nonBenchmark = blsWages.filter(d => d.category !== 'benchmark');
+
+  // Card 1 — weighted average wage across ALL jobs created (static)
+  const avgWage = Math.round(
+    nonBenchmark.reduce((sum, d) => sum + (d.pct / 100) * d.wage, 0)
+  );
+
+  // Card 2 — workforce composition split (cycling)
+  _splitCards = [
+    { label: 'Temporary Roles',    pct: 80, trend: 'Vanish in 12–18 months' },
+    { label: 'Low-Wage Permanent', pct: 15, trend: 'Security & custodial' },
+    { label: 'Skilled Permanent',  pct: 5,  trend: 'IT admins & systems' },
+  ];
+
+  // Card 3 — weighted average wage of permanent roles only (static)
+  const permRoles   = nonBenchmark.filter(d => d.duration === 'permanent');
+  const permPctSum  = permRoles.reduce((s, d) => s + d.pct, 0);
+  const permAvgWage = Math.round(
+    permRoles.reduce((sum, d) => sum + (d.pct / permPctSum) * d.wage, 0)
+  );
+
+  const initSplit = _splitCards[0];
+
+  const payload = {
+    overallTotal: { label: 'Avg. Wage of Jobs Created', value: avgWage,    trend: 'Weighted across all roles & workforce shares', trendDirection: 'down', prefix: '$', raw: true },
+    peakValue:    { label: initSplit.label,              value: initSplit.pct, trend: initSplit.trend, trendDirection: 'down', suffix: '%' },
+    activeCount:  { label: 'Avg. Permanent Wage',        value: permAvgWage, trend: 'After construction clears in 18 months',    trendDirection: 'down', prefix: '$', raw: true },
+  };
+  metrics.update(payload);
+  _s4Metrics.update(payload);
+
+  _cycleMetrics = { update(p) { metrics.update(p); _s4Metrics.update(p); } };
+  _cycleIdx2 = 1;
+
+  _cycleTimeout2 = setTimeout(() => { _cycleInterval2 = setInterval(_tickSplit, 3000); }, 1000);
+}
+
+export function render({ blsWages }) {
+  const s4 = document.getElementById('slide-4-layout');
+  const dg = document.querySelector('.dashboard-grid');
+  if (dg) dg.style.display = 'none';
+  if (s4) s4.style.display = 'grid';
+
+  // Narrative
+  document.getElementById('s4-narrative-lbl').textContent   = narrative.lbl;
+  document.getElementById('s4-narrative-title').textContent = narrative.title;
+  document.getElementById('s4-narrative-body').innerHTML    = narrative.body;
+  animateNarrative(document.getElementById('s4-narrative-body'));
+  document.getElementById('s4-takeaway-title').textContent  = narrative.takeawayTitle;
+  document.getElementById('s4-takeaway-text').textContent   = narrative.takeawayText;
+
+  if (!blsWages) return;
+
+  // ── Workforce unit chart (responsive) ─────────────────────────────────────
+  const _wfContainer = document.getElementById('s4-container-slope');
+  _drawWorkforceChart(_wfContainer, blsWages);
+  if (_workforceObserver) _workforceObserver.disconnect();
+  _workforceObserver = new ResizeObserver(() => _drawWorkforceChart(_wfContainer, blsWages));
+  _workforceObserver.observe(_wfContainer);
+
+  // ── Wage bar chart ─────────────────────────────────────────────────────────
+  const softDev = blsWages.find(d => d.category === 'benchmark');
+
+  const wageData = [...blsWages]
+    .filter(d => d.category !== 'benchmark')
+    .sort((a, b) => b.wage - a.wage)
+    .map(d => ({ role: d.role, wage: d.wage, category: d.category }));
+
+  const catColor = {
+    skilled:      'var(--accent-primary)',
+    construction: 'var(--accent-warning)',
+    operations:   'var(--accent-danger)'
+  };
+
+  const wageChart = new BarChart('#s4-container-wages', {
+    xKey: 'wage',
+    yKey: 'role',
+    margin: { top: 28, right: 30, bottom: 40, left: 135 },
+    colors: wageData.map(d => catColor[d.category] || 'var(--accent-primary)'),
+    showValueLabels: true,
+    benchmarkLines: softDev ? [{
+      value: softDev.wage,
+      label: `Software Dev — the promise ($${Math.round(softDev.wage / 1000)}k)`,
+      color: '#05ffc8'
+    }] : [],
+    xTickFormat: d => `$${d3.format('~s')(d)}`,
+    tooltipFormatter: (d, color) => `
+      <div class="d3-tooltip-title">${d.role}</div>
+      <div class="d3-tooltip-row">
+        <span>Median annual:</span>
+        <span class="d3-tooltip-val" style="color:${color}">$${d.wage.toLocaleString()}</span>
+      </div>
+      ${softDev ? `
+      <div class="d3-tooltip-row">
+        <span>vs. promise:</span>
+        <span class="d3-tooltip-val" style="color:var(--accent-danger)">
+          –$${(softDev.wage - d.wage).toLocaleString()} (${Math.round((1 - d.wage / softDev.wage) * 100)}% less)
+        </span>
+      </div>` : ''}
+      <div class="d3-tooltip-row">
+        <span>Source:</span>
+        <span class="d3-tooltip-val" style="color:var(--text-secondary); font-size:0.75rem">BLS OEWS May 2025</span>
+      </div>
+    `
+  });
+  wageChart.update(wageData);
+}
+
+export function cleanup() {
+  _clearTimers();
+  if (_workforceObserver)   { _workforceObserver.disconnect(); _workforceObserver = null; }
+  if (_workforceBlinkTimer) { clearTimeout(_workforceBlinkTimer); _workforceBlinkTimer = null; }
+  const s4 = document.getElementById('slide-4-layout');
+  const dg = document.querySelector('.dashboard-grid');
+  if (s4) s4.style.display = 'none';
+  if (dg) dg.style.display = '';
 }

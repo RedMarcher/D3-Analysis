@@ -89,3 +89,26 @@ export const tooltip = {
     el.style.opacity = '0';
   }
 };
+
+/**
+ * Normalizes startup funding stage names.
+ * @param {string} s - The raw stage string
+ * @returns {string|null} Remapped stage name or null
+ */
+export function normalizeStage(s) {
+  if (!s) return null;
+  const STAGE_ORDER = ['Seed', 'Series A', 'Series B', 'Series C', 'Series D+', 'Acquired', 'Private Equity', 'Post-IPO'];
+  if (['Series D', 'Series E', 'Series F', 'Series G', 'Series H', 'Series I'].includes(s)) return 'Series D+';
+  return STAGE_ORDER.includes(s) ? s : null;
+}
+
+/**
+ * Calculates total electricity generation for a given energy row by summing all sources.
+ * @param {Object} row - The CSV row containing energy source statistics
+ * @returns {number} Sum of all energy generation sources
+ */
+export function calculateTotalGeneration(row) {
+  return +row.Coal + +row.Gas + +row.Nuclear + +row.Hydro +
+    +row.Solar + +row.Wind + +row.Oil + +row.Bioenergy + +(row['Other renewables'] || 0);
+}
+

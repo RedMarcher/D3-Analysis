@@ -55,7 +55,7 @@ function _tickSource() {
 function _tickDC() {
   if (!_cycleMetrics || !_dcDemand.length) return;
   const e = _dcDemand[_cycleIdx3];
-  _cycleMetrics.update({ activeCount: { label: e.label, value: e.twh, trend: e.trend, trendDirection: 'up', raw: true } });
+  _cycleMetrics.update({ activeCount: { label: e.label, value: e.twh, trend: e.trend, trendDirection: 'up', raw: true, suffix: ' TWh' } });
   _cycleIdx3 = (_cycleIdx3 + 1) % _dcDemand.length;
 }
 
@@ -86,9 +86,8 @@ export function updateKPIs(metrics, { energyData, aterioYearlyMW }) {
   // ── Card 3: DC demand growth by year ───────────────────────────────────────
   const dcYears = [
     { year: 2020, label: 'DC Demand 2020', trend: 'Actual · Aterio' },
-    { year: 2023, label: 'DC Demand 2023', trend: 'Actual · Aterio' },
-    { year: 2026, label: 'DC Pipeline 2026', trend: 'Projected · Aterio' },
-    { year: 2030, label: 'DC Pipeline 2030', trend: 'Full buildout ceiling' },
+    { year: 2025, label: 'DC Demand 2025', trend: 'Actual · Aterio' },
+    { year: 2030, label: 'DC Pipeline 2030', trend: 'Projected · Aterio' },
   ];
   _dcDemand = aterioYearlyMW ? dcYears.map(({ year, label, trend }) => {
     const row = aterioYearlyMW.find(d => d.year === year);
@@ -98,12 +97,12 @@ export function updateKPIs(metrics, { energyData, aterioYearlyMW }) {
   // ── Initial display ─────────────────────────────────────────────────────────
   const initFossil = _fossilByYear.find(d => d.year === '2023') || _fossilByYear.at(-1);
   const initSource = _sourceBreakdown[0];
-  const initDC = _dcDemand.find(d => d.label.includes('2023')) || _dcDemand[0];
+  const initDC = _dcDemand.find(d => d.label.includes('2025')) || _dcDemand[0];
 
   const payload = {
     overallTotal: { label: `Fossil Fuel (${initFossil?.year})`, value: initFossil?.pct ?? 58, trend: initFossil?.trend ?? '', trendDirection: 'neutral', suffix: '%' },
     peakValue: { label: initSource?.label ?? 'Clean Green Ratio', value: initSource?.pct ?? 22, trend: initSource?.trend ?? '', trendDirection: 'up', suffix: '%' },
-    activeCount: { label: initDC?.label ?? 'DC Demand 2023', value: initDC?.twh ?? 251, trend: initDC?.trend ?? '', trendDirection: 'up', raw: true }
+    activeCount: { label: initDC?.label ?? 'DC Demand 2023', value: initDC?.twh ?? 251, trend: initDC?.trend ?? '', trendDirection: 'up', raw: true, suffix: ' TWh' }
   };
   metrics.update(payload);
   _s3Metrics.update(payload);

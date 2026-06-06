@@ -1,5 +1,6 @@
 import * as d3 from 'd3';
 import { LineChart } from '../components/line-chart.js';
+import { StreamChart } from '../components/stream-chart.js';
 import { MetricCards } from '../components/metric-cards.js';
 import { animateNarrative } from '../utils/animate-narrative.js';
 import { calculateTotalGeneration } from '../utils/helpers.js';
@@ -199,7 +200,7 @@ export function render({ energyData, aterioYearlyMW }) {
     });
   });
 
-  const rightChart = new LineChart('#s3-container-right', {
+  const rightChart = new StreamChart('#s3-container-right', {
     xKey: 'date',
     yKey: 'value',
     groupKey: 'series',
@@ -207,7 +208,6 @@ export function render({ energyData, aterioYearlyMW }) {
     yLabel: 'Electricity Generation (TWh)',
     colors: ['#6b7280', '#4facfe', '#b100ff', '#05ffc8', '#ffb700', '#ff0844'],
     xTickInterval: d3.timeYear.every(5),
-    inlineLegend: true
   });
   rightChart.update(sourcesData);
 }

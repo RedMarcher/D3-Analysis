@@ -1,5 +1,6 @@
 import * as d3 from 'd3';
 import { getDimensions, tooltip, formatValue } from '../utils/helpers.js';
+import { createSmoothZoom } from '../utils/smooth-zoom.js';
 
 export class ScatterPlot {
   constructor(selector, config = {}) {
@@ -32,6 +33,7 @@ export class ScatterPlot {
     this.yScaleBase   = null;
     this.sizeScale    = null;
     this.zoom         = null;
+    this._smoothZoom  = null;
     this._innerWidth  = 0;
     this._innerHeight = 0;
     this._lastWidth   = 0;
@@ -94,12 +96,6 @@ export class ScatterPlot {
 
     this.colorScale = d3.scaleOrdinal(this.config.colors);
 
-    this.zoom = d3.zoom()
-      .scaleExtent([1, 60])
-      .on('zoom', (event) => this._onZoom(event))
-      .on('start', () => this.g.style('cursor', 'grabbing'))
-      .on('end',   () => this.g.style('cursor', 'grab'));
-
     if (this.container.__resizeObserver) this.container.__resizeObserver.disconnect();
     this.container.__resizeObserver = new ResizeObserver(() => this.resize());
     this.container.__resizeObserver.observe(this.container);
@@ -131,18 +127,10 @@ export class ScatterPlot {
     this.draw();
   }
 
-  resetZoom() {
-    this.g.transition().duration(400)
-      .call(this.zoom.transform, d3.zoomIdentity);
-  }
+  resetZoom() { this._smoothZoom?.resetZoom(); }
+  zoomIn()    { this._smoothZoom?.zoomIn(); }
 
-  zoomIn() {
-    this.g.transition().duration(300).call(this.zoom.scaleBy, 1.5);
-  }
-
-  zoomOut() {
-    this.g.transition().duration(300).call(this.zoom.scaleBy, 1 / 1.5);
-  }
+  zoomOut()   { this._smoothZoom?.zoomOut(); }
 
   draw() {
     if (!this.data) return;
@@ -206,12 +194,20 @@ export class ScatterPlot {
       .domain(d3.extent(this.filteredData, d => +d[sizeKey]))
       .range([3, Math.min(20, innerWidth / 28)]);
 
+    if (!this._smoothZoom) {
+      this._smoothZoom = createSmoothZoom(this.g, {
+        scaleExtent: [1, 60],
+        halfLife: 30,
+        onUpdate: (displayT) => this._onZoomUpdate(displayT),
+      });
+      this.zoom = this._smoothZoom.zoom;
+    }
     this.zoom
       .translateExtent([[0, 0], [innerWidth, innerHeight]])
       .extent([[0, 0], [innerWidth, innerHeight]]);
 
-    // Attach zoom to g — wheel events on bubbles bubble up and trigger zoom too
-    this.g.call(this.zoom).call(this.zoom.transform, d3.zoomIdentity);
+    // Reset zoom to identity on every draw (data/filter/resize change)
+    this.g.call(this.zoom.transform, d3.zoomIdentity);
     this.g.style('cursor', 'grab');
 
     this._renderAxes(this.xScaleBase, this.yScaleBase);
@@ -231,18 +227,15 @@ export class ScatterPlot {
     this.drawLegend();
   }
 
-  _onZoom(event) {
-    const xNew = event.transform.rescaleX(this.xScaleBase);
-    const yNew = event.transform.rescaleY(this.yScaleBase);
-
+  _onZoomUpdate(displayT) {
+    const xNew = displayT.rescaleX(this.xScaleBase);
+    const yNew = displayT.rescaleY(this.yScaleBase);
     this._renderAxes(xNew, yNew);
     this._renderGrid(xNew, yNew);
-
     const xKey = this.config.xKey;
     this.bubblesContainer.selectAll('.chart-node')
       .attr('cx', d => xNew(d[xKey]))
       .attr('cy', d => yNew(+d[this.config.yKey]));
-
     this.crosshair.style('opacity', 0);
   }
 

@@ -1,5 +1,6 @@
 import * as d3 from 'd3';
 import { getDimensions, tooltip, formatValue } from '../utils/helpers.js';
+import { createSmoothZoom } from '../utils/smooth-zoom.js';
 
 const STATE_FILL         = 'rgba(20, 24, 38, 0.85)';
 const STATE_STROKE       = 'rgba(255, 255, 255, 0.08)';
@@ -28,8 +29,9 @@ export class USMap {
     this.facilitiesData = null;
     this.showFacilities = false;
     this.selectedStateId = null;
-    this.currentTransform = d3.zoomIdentity;
+    this._displayTransform = d3.zoomIdentity;
     this.zoom = null;
+    this._smoothZoom  = null;
     this._animated  = false;
     this._lastWidth  = 0;
     this._lastHeight = 0;
@@ -51,72 +53,15 @@ export class USMap {
     // Overlay layer sits outside g — not affected by zoom transform
     this.overlayLayer = this.svg.append('g').attr('class', 'overlay-layer');
 
-    // Display state — the visually applied position, lags behind currentTransform
-    this._displayX = 0;
-    this._displayY = 0;
-    this._displayK = 1;
-    this._kTarget = 1;
-    this._txTarget = 0;
-    this._tyTarget = 0;
-    this._visRaf = null;
-    this._isDragging = false;  // true while pointer is down
-    this._isWheeling = false;  // true for 150ms after last wheel event
-    this._wheelTimer = null;
-
-    this.zoom = d3.zoom()
-      .scaleExtent([1, 64])
-      .on('start', (event) => {
-        if (event.sourceEvent) this._isDragging = true;
-      })
-      .on('zoom', (event) => {
-        this.currentTransform = event.transform;
-        if (this.config.onZoomChange) this.config.onZoomChange(event.transform.k);
-        if (!event.sourceEvent) {
-          // Programmatic (buttons, reset): sync display immediately, no lag
-          this._displayX = event.transform.x;
-          this._displayY = event.transform.y;
-          this._displayK = event.transform.k;
-          this._kTarget = event.transform.k;
-          this._txTarget = event.transform.x;
-          this._tyTarget = event.transform.y;
-          this._applyDisplay(event.transform);
-        } else {
-          // User drag: update targets, let visual decay catch up
-          this._kTarget = event.transform.k;
-          this._txTarget = event.transform.x;
-          this._tyTarget = event.transform.y;
-          this._startVisualDecay();
-        }
-      })
-      .on('end', (event) => {
-        if (event.sourceEvent) this._isDragging = false;
-      });
-
-    this.svg.call(this.zoom);
-
-    // Custom wheel handler — updates D3's __zoom directly to avoid event dispatch conflicts
-    this.svg.on('wheel.zoom', null);
-    this.svg.on('wheel', (event) => {
-      event.preventDefault();
-      const delta = event.deltaMode === 1 ? event.deltaY * 33 : event.deltaY;
-      const factor = Math.exp(-delta * 0.002);
-      const [mx, my] = d3.pointer(event, this.svg.node());
-      const kNew = Math.max(1, Math.min(64, this._kTarget * factor));
-      const txNew = mx - (mx - this._txTarget) * (kNew / this._kTarget);
-      const tyNew = my - (my - this._tyTarget) * (kNew / this._kTarget);
-      const newT = d3.zoomIdentity.translate(txNew, tyNew).scale(kNew);
-      // Update D3's internal state without firing a zoom event
-      this.svg.node().__zoom = newT;
-      this.currentTransform = newT;
-      this._kTarget = kNew;
-      this._txTarget = txNew;
-      this._tyTarget = tyNew;
-      this._isWheeling = true;
-      clearTimeout(this._wheelTimer);
-      this._wheelTimer = setTimeout(() => { this._isWheeling = false; }, 150);
-      if (this.config.onZoomChange) this.config.onZoomChange(kNew);
-      this._startVisualDecay();
-    }, { passive: false });
+    this._smoothZoom = createSmoothZoom(this.svg, {
+      scaleExtent: [1, 64],
+      halfLife: 30,
+      onUpdate: (t) => this._applyDisplay(t),
+      onZoomChange: (k) => {
+        if (this.config.onZoomChange) this.config.onZoomChange(k);
+      },
+    });
+    this.zoom = this._smoothZoom.zoom;
 
     // Click on SVG background to deselect
     this.svg.on('click', (event) => {
@@ -250,7 +195,7 @@ export class USMap {
     }
 
     // Reapply zoom transform so redraw doesn't reset position
-    this.g.attr('transform', this.currentTransform);
+    this.g.attr('transform', this._displayTransform);
   }
 
   _drawBubbles(pathGen, isFirstDraw, mapWidth) {
@@ -265,7 +210,7 @@ export class USMap {
     const maxPlanned     = d3.max(bubbleData, d => d.planned) || 10;
     const ringWidthScale = d3.scaleSqrt().domain([0, maxPlanned]).range([0, 7]);
 
-    const t = this.currentTransform;
+    const t = this._displayTransform;
 
     const groups = this.overlayLayer.selectAll('.planned-bubble-group')
       .data(bubbleData, d => d.id)
@@ -326,7 +271,7 @@ export class USMap {
 
   _drawFacilityDots(projection, isFirstDraw, mapWidth) {
     const self = this;
-    const t = this.currentTransform;
+    const t = this._displayTransform;
 
     const projected = this.facilitiesData.map(d => {
       const coords = projection([+d.lon, +d.lat]);
@@ -425,33 +370,11 @@ export class USMap {
   }
 
   _applyDisplay(t) {
+    this._displayTransform = t;
     this.g.attr('transform', t);
     this._repositionFacilityDots(t);
     this._repositionBubbles(t);
     this.svg.style('cursor', t.k > 1 ? 'grabbing' : 'grab');
-  }
-
-  _startVisualDecay() {
-    if (this._visRaf) return; // already ticking — picks up updated targets
-    let lastTime = performance.now();
-    const tick = (now) => {
-      const dt = Math.min(now - lastTime, 50);
-      lastTime = now;
-      const alphaK = 1 - Math.pow(0.5, dt / 30); // zoom: 30ms half-life
-      const alphaXY = 1 - Math.pow(0.5, dt / 30); // pan: 30ms half-life
-      this._displayK += (this._kTarget - this._displayK) * alphaK;
-      this._displayX += (this._txTarget - this._displayX) * alphaXY;
-      this._displayY += (this._tyTarget - this._displayY) * alphaXY;
-      this._applyDisplay(d3.zoomIdentity.translate(this._displayX, this._displayY).scale(this._displayK));
-      const settled = Math.abs(this._displayK - this._kTarget) < 0.005
-        && Math.abs(this._displayX - this._txTarget) < 0.3
-        && Math.abs(this._displayY - this._tyTarget) < 0.3
-        && !this._isDragging
-        && !this._isWheeling;
-      if (settled) { this._visRaf = null; return; }
-      this._visRaf = requestAnimationFrame(tick);
-    };
-    this._visRaf = requestAnimationFrame(tick);
   }
 
   toggleFacilities(show) {
@@ -459,18 +382,9 @@ export class USMap {
     this.draw(); // _animated is already true → isFirstDraw=false → no state animation
   }
 
-  zoomIn() {
-    this.svg.transition().duration(300).call(this.zoom.scaleBy, 1.5);
-  }
-
-  zoomOut() {
-    this.svg.transition().duration(300).call(this.zoom.scaleBy, 1 / 1.5);
-  }
-
-  resetZoom() {
-    if (this._visRaf) { cancelAnimationFrame(this._visRaf); this._visRaf = null; }
-    this.svg.transition().duration(500).call(this.zoom.transform, d3.zoomIdentity);
-  }
+  zoomIn()    { this._smoothZoom.zoomIn(); }
+  zoomOut()   { this._smoothZoom.zoomOut(); }
+  resetZoom() { this._smoothZoom.resetZoom(); }
 
   resize() {
     const { margin } = this.config;

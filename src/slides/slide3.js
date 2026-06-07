@@ -208,6 +208,18 @@ export function render({ energyData, aterioYearlyMW }) {
     xTickInterval: d3.timeYear.every(5),
   });
   rightChart.update(sourcesData);
+
+  d3.select('#s3-stream-controls').html(`
+    <div style="display: flex; align-items: center; gap: 0.25rem;">
+      <span style="font-size: 0.7rem; color: var(--text-secondary); margin-right: 0.35rem; opacity: 0.6;">(Scroll to zoom)</span>
+      <button id="btn-stream-zoom-in" class="btn-nav" style="padding: 0.25rem 0.5rem; font-size: 0.85rem; font-weight: bold; line-height: 1;" title="Zoom In">+</button>
+      <button id="btn-stream-zoom-out" class="btn-nav" style="padding: 0.25rem 0.5rem; font-size: 0.85rem; font-weight: bold; line-height: 1;" title="Zoom Out">−</button>
+      <button id="btn-stream-zoom-reset" class="btn-nav" style="padding: 0.25rem 0.625rem; font-size: 0.75rem; margin-left: 0.25rem;">Reset</button>
+    </div>
+  `);
+  d3.select('#btn-stream-zoom-in').on('click', () => rightChart.zoomIn());
+  d3.select('#btn-stream-zoom-out').on('click', () => rightChart.zoomOut());
+  d3.select('#btn-stream-zoom-reset').on('click', () => rightChart.resetZoom());
 }
 
 export function cleanup() {

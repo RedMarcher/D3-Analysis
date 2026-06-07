@@ -87,38 +87,6 @@ body::after {
   margin-top: 0.15rem;
 }
 
-/* Slideshow Dashboard Main Body */
-.dashboard-grid {
-  display: grid;
-  grid-template-columns: 350px 1fr;
-  gap: 1.5rem;
-  align-items: stretch;
-}
-
-/* Sidebar Narrative Panel */
-.narrative-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-  background: var(--bg-surface);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius-md);
-  padding: 1.5rem;
-  box-shadow: var(--shadow-md);
-  align-self: flex-start;
-  width: 100%;
-}
-
-/* Main Presentation Area */
-.main-presentation-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-  height: 100%;
-}
-
 /* Metrics Row */
 .metrics-row {
   display: grid;
@@ -129,7 +97,7 @@ body::after {
 /* Visualizations Grid (Map + Side Chart) */
 .charts-grid {
   display: grid;
-  grid-template-columns: 1.2fr 0.8fr; /* Map gets more space */
+  grid-template-columns: 1.2fr 0.8fr;
   gap: 1.25rem;
   align-items: stretch;
   flex: 1;
@@ -148,8 +116,6 @@ body::after {
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-md);
   box-shadow: var(--shadow-sm);
-  
-  /* Lock to bottom of viewport to prevent jumping */
   position: sticky;
   bottom: 1.5rem;
   z-index: 100;
@@ -190,8 +156,8 @@ body::after {
   font-size: 0.8125rem;
 }
 
-/* ── Slide 2 custom layout ─────────────────────────── */
-.dashboard-grid,
+/* ── All slide layouts share these base rules ────────── */
+#slide-1-layout,
 #slide-2-layout,
 #slide-3-layout,
 #slide-4-layout {
@@ -199,6 +165,43 @@ body::after {
   min-height: 800px;
 }
 
+/* ── Slide 1 layout ──────────────────────────────────── */
+#slide-1-layout {
+  display: none;
+  grid-template-columns: 350px 1fr;
+  gap: 1.5rem;
+  align-items: stretch;
+}
+
+.s1-left {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.s1-right {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  height: 100%;
+}
+
+.s1-right .metrics-row { order: 0; }
+.s1-right .charts-grid { order: 1; }
+
+/* Charts grid column layout per slide */
+.charts-grid.s1-mode { grid-template-columns: 1fr; }
+
+/* Shrink-row mode: cards hug their content height but fill full column width */
+.charts-grid.shrink-rows {
+  align-items: start;
+}
+.charts-grid.shrink-rows > * {
+  width: 100%;
+  align-self: start;
+}
+
+/* ── Slide 2 layout ──────────────────────────────────── */
 #slide-2-layout {
   display: none;
   grid-template-columns: 6fr 12fr;
@@ -235,7 +238,7 @@ body::after {
   padding: 1.5rem;
 }
 
-/* ── Slide 3 custom layout ─────────────────────────── */
+/* ── Slide 3 layout ──────────────────────────────────── */
 #slide-3-layout {
   display: none;
   grid-template-columns: 6fr 14fr 4fr;
@@ -243,9 +246,9 @@ body::after {
   align-items: start;
 }
 
-.s3-sidebar,
-.s3-charts,
-.s3-kpis {
+.s3-left,
+.s3-mid,
+.s3-right {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
@@ -269,16 +272,7 @@ body::after {
   height: 320px;
 }
 
-/* ── Slide 4 — temporary worker dot blink ───────────── */
-@keyframes unit-dot-fade {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0.2; }
-}
-.unit-dot-temp {
-  animation: unit-dot-fade 1.8s ease-in-out infinite;
-}
-
-/* ── Slide 4 custom layout ─────────────────────────── */
+/* ── Slide 4 layout ──────────────────────────────────── */
 #slide-4-layout {
   display: none;
   grid-template-columns: 6fr 12fr 4fr;
@@ -286,9 +280,9 @@ body::after {
   align-items: start;
 }
 
-.s4-sidebar,
-.s4-charts,
-.s4-kpis {
+.s4-left,
+.s4-mid,
+.s4-right {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
@@ -310,41 +304,26 @@ body::after {
 #s4-container-slope  { height: 320px; }
 #s4-container-wages  { height: 280px; }
 
-@media (max-width: 1024px) {
-  #slide-4-layout { grid-template-columns: 1fr; min-height: auto; }
-  #s4-container-sankey, #s4-container-wages { height: 260px; }
-  .s4-kpis { flex-direction: row; flex-wrap: wrap; }
-  .s4-kpis .metric-card { flex: 1; min-width: 140px; }
+/* ── Slide 4 — temporary worker dot blink ───────────── */
+@keyframes unit-dot-fade {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.2; }
+}
+.unit-dot-temp {
+  animation: unit-dot-fade 1.8s ease-in-out infinite;
 }
 
-@media (max-width: 768px) {
-  #s4-container-sankey, #s4-container-wages { height: 220px; }
-  .s4-kpis { flex-direction: column; }
-}
-
-/* Charts grid column layout per slide */
-.charts-grid.s1-mode { grid-template-columns: 1fr; }
-
-/* Shrink-row mode: cards hug their content height but fill full column width */
-.charts-grid.shrink-rows {
-  align-items: start;
-}
-.charts-grid.shrink-rows > * {
-  width: 100%;
-  align-self: start;
-}
-
-/* Responsive Overrides */
+/* ── Responsive: tablet (≤1200px) ───────────────────── */
 @media (max-width: 1200px) {
-  .dashboard-grid {
+  #slide-1-layout {
     grid-template-columns: 1fr;
   }
 
-  .narrative-panel {
+  .s1-left {
     min-height: auto;
   }
 
-  .main-presentation-panel {
+  .s1-right {
     height: auto;
   }
 
@@ -354,39 +333,40 @@ body::after {
   }
 }
 
-/* ── Tablet: collapse slide 2 & 3 custom layouts ─────────── */
+/* ── Responsive: tablet (≤1024px) ───────────────────── */
 @media (max-width: 1024px) {
   #slide-2-layout,
-  #slide-3-layout {
+  #slide-3-layout,
+  #slide-4-layout {
     grid-template-columns: 1fr;
     min-height: auto;
   }
 
-  /* Slide 2: shrink line chart on tablet */
-  .s2-chart-card {
-    flex: none;
-  }
-  #s2-container-line {
-    height: 280px;
-  }
+  /* Slide 2 */
+  .s2-chart-card { flex: none; }
+  #s2-container-line { height: 280px; }
 
   /* Slide 3: KPI column becomes a horizontal row when stacked */
-  .s3-kpis {
+  .s3-right {
     flex-direction: row;
     flex-wrap: wrap;
   }
-  .s3-kpis .metric-card {
+  .s3-right .metric-card {
     flex: 1;
     min-width: 140px;
   }
-
   #s3-container-left,
   #s3-container-right {
     height: 260px;
   }
+
+  /* Slide 4 */
+  #s4-container-wages { height: 260px; }
+  .s4-right { flex-direction: row; flex-wrap: wrap; }
+  .s4-right .metric-card { flex: 1; min-width: 140px; }
 }
 
-/* ── Phone: further tighten heights ──────────────────────── */
+/* ── Responsive: phone (≤768px) ─────────────────────── */
 @media (max-width: 768px) {
   .metrics-row {
     grid-template-columns: 1fr;
@@ -404,48 +384,18 @@ body::after {
   }
 
   /* Slide 2 */
-  .s2-kpi-row {
-    grid-template-columns: 1fr;
-  }
-  #s2-container-line {
-    height: 220px;
-  }
-  #s2-container-scatter {
-    height: 260px;
-  }
+  .s2-kpi-row { grid-template-columns: 1fr; }
+  #s2-container-line { height: 220px; }
+  #s2-container-scatter { height: 260px; }
 
   /* Slide 3 */
   #s3-container-left,
   #s3-container-right {
     height: 220px;
   }
+  .s3-right { flex-direction: column; }
 
-  /* Slide 3 KPIs: stack back to column on very small screens */
-  .s3-kpis {
-    flex-direction: column;
-  }
-}
-
-/* ── Dynamic Slide Layout Modes ─────────────────────────── */
-
-/* Slide 1 - Default (Top Metrics, Map + Chart) */
-.slide-1-mode {
-  flex-direction: column;
-}
-.slide-1-mode .metrics-row {
-  order: 0;
-}
-.slide-1-mode .charts-grid {
-  order: 1;
-}
-
-/* Slide 4 - Horizontal Metrics on Bottom, Side-by-Side Charts on Top */
-.slide-4-mode {
-  flex-direction: column;
-}
-.slide-4-mode .charts-grid {
-  order: 1;
-}
-.slide-4-mode .metrics-row {
-  order: 2;
+  /* Slide 4 */
+  #s4-container-wages { height: 220px; }
+  .s4-right { flex-direction: column; }
 }

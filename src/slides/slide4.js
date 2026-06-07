@@ -244,8 +244,6 @@ export function updateKPIs(metrics, { blsWages }) {
 
 export function render({ blsWages }) {
   const s4 = document.getElementById('slide-4-layout');
-  const dg = document.querySelector('.dashboard-grid');
-  if (dg) dg.style.display = 'none';
   if (s4) s4.style.display = 'grid';
 
   // Narrative
@@ -318,7 +316,5 @@ export function cleanup() {
   if (_workforceObserver) { _workforceObserver.disconnect(); _workforceObserver = null; }
   if (_workforceBlinkTimer) { clearTimeout(_workforceBlinkTimer); _workforceBlinkTimer = null; }
   const s4 = document.getElementById('slide-4-layout');
-  const dg = document.querySelector('.dashboard-grid');
   if (s4) s4.style.display = 'none';
-  if (dg) dg.style.display = '';
 }

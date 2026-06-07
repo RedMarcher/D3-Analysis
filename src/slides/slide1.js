@@ -1,5 +1,6 @@
 import * as d3 from 'd3';
 import { USMap } from '../components/us-map.js';
+import { animateNarrative } from '../utils/animate-narrative.js';
 
 export const narrative = {
   lbl: "Exhibit 1: The True Scale",
@@ -115,6 +116,8 @@ export function updateKPIs(metrics, { aterioStates }) {
 }
 
 let panelLocked = false;
+let _autoEnabledOverlay = false;
+const OVERLAY_ZOOM_THRESHOLD = 3;
 
 function updateDetailPanel({ type, name, item }) {
   const placeholder = document.querySelector('.map-detail-placeholder');
@@ -204,8 +207,18 @@ function setSourceBadge(isOverlay) {
   }
 }
 
-export function render({ containerLeft, geoJson, atlasData, aterioStates, showFacilitiesOverlay, onOverlayToggle }) {
+export function render({ geoJson, atlasData, aterioStates, showFacilitiesOverlay, onOverlayToggle, onAutoOverlayToggle }) {
   panelLocked = false;
+
+  const s1 = document.getElementById('slide-1-layout');
+  if (s1) s1.style.display = 'grid';
+
+  document.getElementById('s1-narrative-lbl').textContent = narrative.lbl;
+  document.getElementById('s1-narrative-title').textContent = narrative.title;
+  document.getElementById('s1-narrative-body').innerHTML = narrative.body;
+  animateNarrative(document.getElementById('s1-narrative-body'));
+  document.getElementById('s1-takeaway-title').textContent = narrative.takeawayTitle;
+  document.getElementById('s1-takeaway-text').textContent = narrative.takeawayText;
 
   const grid = document.querySelector('.charts-grid');
   grid.classList.add('s1-mode', 'shrink-rows');
@@ -237,15 +250,35 @@ export function render({ containerLeft, geoJson, atlasData, aterioStates, showFa
     </div>
   `);
 
-  const usMap = new USMap(containerLeft, geoJson, {
+  _autoEnabledOverlay = false;
+
+  const usMap = new USMap('#container-us-map', geoJson, {
     onStateHover: (payload) => { if (!panelLocked) updateDetailPanel(payload); },
     onStateOut: () => { if (!panelLocked) resetDetailPanel(); },
     onStateClick: (payload) => { panelLocked = true; updateDetailPanel(payload); },
-    onStateDeselect: () => { panelLocked = false; resetDetailPanel(); }
+    onStateDeselect: () => { panelLocked = false; resetDetailPanel(); },
+    onZoomChange: (k) => {
+      const chk = document.getElementById('chk-show-facilities');
+      if (!chk) return;
+      if (k >= OVERLAY_ZOOM_THRESHOLD && !chk.checked) {
+        _autoEnabledOverlay = true;
+        chk.checked = true;
+        setSourceBadge(true);
+        onAutoOverlayToggle?.(true);
+        usMap.toggleFacilities(true);
+      } else if (k < OVERLAY_ZOOM_THRESHOLD && chk.checked && _autoEnabledOverlay) {
+        _autoEnabledOverlay = false;
+        chk.checked = false;
+        setSourceBadge(false);
+        onAutoOverlayToggle?.(false);
+        usMap.toggleFacilities(false);
+      }
+    }
   });
   usMap.update(aterioStates, 1, atlasData, showFacilitiesOverlay);
 
   d3.select('#chk-show-facilities').on('change', function () {
+    _autoEnabledOverlay = false; // manual interaction clears auto flag
     setSourceBadge(this.checked);
     onOverlayToggle(this.checked, usMap);
   });
@@ -257,6 +290,8 @@ export function render({ containerLeft, geoJson, atlasData, aterioStates, showFa
 
 export function cleanup() {
   _clearTimers();
+  const s1 = document.getElementById('slide-1-layout');
+  if (s1) s1.style.display = 'none';
   const grid = document.querySelector('.charts-grid');
   grid.classList.remove('shrink-rows', 's1-mode');
   document.getElementById('supporting-chart-card').classList.remove('hidden');

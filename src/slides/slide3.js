@@ -120,8 +120,6 @@ export function updateKPIs(metrics, { energyData, aterioYearlyMW }) {
 export function render({ energyData, aterioYearlyMW }) {
   // Switch to slide 3 layout
   const s3 = document.getElementById('slide-3-layout');
-  const dg = document.querySelector('.dashboard-grid');
-  if (dg) dg.style.display = 'none';
   if (s3) s3.style.display = 'grid';
 
   // Populate narrative
@@ -215,7 +213,5 @@ export function render({ energyData, aterioYearlyMW }) {
 export function cleanup() {
   _clearTimers();
   const s3 = document.getElementById('slide-3-layout');
-  const dg = document.querySelector('.dashboard-grid');
   if (s3) s3.style.display = 'none';
-  if (dg) dg.style.display = '';
 }

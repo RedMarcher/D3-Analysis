@@ -152,8 +152,6 @@ export function updateKPIs(metrics, { layoffsData, aterioYearlyMW }) {
 export function render({ layoffsData, aterioYearlyMW }) {
   // Switch layouts
   const s2 = document.getElementById('slide-2-layout');
-  const dg = document.querySelector('.dashboard-grid');
-  if (dg) dg.style.display = 'none';
   if (s2) s2.style.display = 'grid';
 
   // Populate narrative panel
@@ -323,7 +321,5 @@ export function render({ layoffsData, aterioYearlyMW }) {
 export function cleanup() {
   if (_cycleInterval) { clearInterval(_cycleInterval); _cycleInterval = null; }
   const s2 = document.getElementById('slide-2-layout');
-  const dg = document.querySelector('.dashboard-grid');
   if (s2) s2.style.display = 'none';
-  if (dg) dg.style.display = '';
 }

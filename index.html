@@ -29,69 +29,49 @@
       </div>
     </header>
 
-    <!-- Main Slideshow Grid -->
-    <div class="dashboard-grid">
+    <!-- Slide 1 Layout -->
+    <div id="slide-1-layout">
 
-      <!-- Left Panel: Persuasive Narrative Sidebar -->
-      <aside class="narrative-panel" id="slideshow-narrative-container">
-        <div class="narrative-header">
-          <span class="narrative-slide-number" id="narrative-slide-lbl">Case Study 1</span>
-          <h2 class="narrative-title" id="narrative-slide-title">Infrastructure Growth</h2>
-        </div>
-
-        <div class="narrative-body" id="narrative-slide-body">
-          <p>Analyzing the scale and future projections of data center construction.</p>
-          <ul class="narrative-bullets">
-            <li>Virginia, California, and Texas hold the highest concentrations of facilities.</li>
-            <li>Planned additions show that growth is accelerated and continuous.</li>
-          </ul>
-        </div>
-
-        <!-- Takeaway Box: Conclusive Takeaway Connotation (Direct Rebuttal) -->
-        <div class="takeaway-card" id="narrative-takeaway-container">
-          <div class="takeaway-title" id="narrative-takeaway-title">Conclusive Takeaway</div>
-          <div class="takeaway-text" id="narrative-takeaway-text">
-            Understanding the massive physical footprint is critical to evaluating its true net value.
+      <!-- Left column: narrative sidebar -->
+      <div class="s1-left">
+        <div class="glass-card s1-narrative" id="s1-narrative-card">
+          <div class="narrative-header">
+            <span class="narrative-slide-number" id="s1-narrative-lbl"></span>
+            <h2 class="narrative-title" id="s1-narrative-title"></h2>
+          </div>
+          <div class="narrative-body" id="s1-narrative-body"></div>
+          <div class="takeaway-card" id="s1-takeaway-card">
+            <div class="takeaway-title" id="s1-takeaway-title"></div>
+            <div class="takeaway-text" id="s1-takeaway-text"></div>
           </div>
         </div>
-      </aside>
+      </div>
 
-      <!-- Right Panel: Presentation Area (KPIs + Visuals) -->
-      <main class="main-presentation-panel">
+      <!-- Right column: KPIs + map + supporting chart -->
+      <div class="s1-right">
 
         <!-- Top Metrics Row: KPIs -->
         <div class="metrics-row" id="metrics-card-container">
-          <!-- Metric Card 1 -->
           <div class="glass-card metric-card" id="kpi-card-1">
             <span class="metric-label" id="kpi-label-1">Overall Total</span>
             <span class="metric-value" id="kpi-val-1">0</span>
-            <span class="metric-trend up" id="kpi-trend-1">
-              <span>--</span>
-            </span>
+            <span class="metric-trend up" id="kpi-trend-1"><span>--</span></span>
           </div>
-
-          <!-- Metric Card 2 -->
           <div class="glass-card metric-card" id="kpi-card-2">
             <span class="metric-label" id="kpi-label-2">Peak Threshold</span>
             <span class="metric-value" id="kpi-val-2">0</span>
-            <span class="metric-trend down" id="kpi-trend-2">
-              <span>--</span>
-            </span>
+            <span class="metric-trend down" id="kpi-trend-2"><span>--</span></span>
           </div>
-
-          <!-- Metric Card 3 -->
           <div class="glass-card metric-card" id="kpi-card-3">
             <span class="metric-label" id="kpi-label-3">Active Segments</span>
             <span class="metric-value" id="kpi-val-3">0</span>
-            <span class="metric-trend up" id="kpi-trend-3">
-              <span>--</span>
-            </span>
+            <span class="metric-trend up" id="kpi-trend-3"><span>--</span></span>
           </div>
         </div>
 
-        <!-- Middle Visualizations: Map + Supporting Chart -->
+        <!-- Charts: Map + Supporting Chart -->
         <div class="charts-grid">
-          <!-- Left Column: Central US Map -->
+          <!-- Left: Central US Map -->
           <div class="glass-card" style="position: relative; display: flex; flex-direction: column;">
             <div id="loader-us-map" class="skeleton-loader">
               <div class="skeleton-spinner"></div>
@@ -105,10 +85,8 @@
               </div>
               <div id="us-map-controls" class="map-controls-group"></div>
             </div>
-            <!-- Map + Detail Panel row -->
             <div style="display: flex; gap: 0.75rem;">
               <div class="chart-container-wrapper" id="container-us-map" style="flex: 1;"></div>
-              <!-- Fixed detail panel, only visible on slide 1 -->
               <div id="map-detail-panel" class="map-detail-panel">
                 <div class="map-detail-placeholder">
                   <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
@@ -127,7 +105,7 @@
             </div>
           </div>
 
-          <!-- Right Column: Supporting Context Chart -->
+          <!-- Right: Supporting Context Chart -->
           <div id="supporting-chart-card" class="glass-card">
             <div id="loader-supporting-chart" class="skeleton-loader">
               <div class="skeleton-spinner"></div>
@@ -141,21 +119,19 @@
               </div>
               <div id="supporting-chart-controls" class="chart-controls-group"></div>
             </div>
-            <!-- Bounding container for supporting D3 charts -->
-            <div class="chart-container-wrapper" id="container-supporting-chart">
-            </div>
+            <div class="chart-container-wrapper" id="container-supporting-chart"></div>
             <div class="legend-container" id="legend-supporting-chart"></div>
           </div>
         </div>
 
-      </main>
+      </div>
     </div>
 
-    <!-- Slide 2 Custom Layout (shown only when slide 2 is active) -->
+    <!-- Slide 2 Layout -->
     <div id="slide-2-layout">
 
-      <!-- Left column: narrative on top, then KPIs -->
-      <div class="s2-right">
+      <!-- Left column: narrative + KPIs -->
+      <div class="s2-left">
 
         <div class="glass-card s2-narrative" id="s2-narrative-card">
           <div class="narrative-header">
@@ -190,8 +166,8 @@
 
       </div>
 
-      <!-- Right column: line chart on top, scatter on bottom -->
-      <div class="s2-left">
+      <!-- Right column: line chart + scatter -->
+      <div class="s2-right">
 
         <div class="glass-card s2-chart-card">
           <div class="glass-card-title" style="display:flex; justify-content:space-between; align-items:center;">
@@ -234,12 +210,11 @@
       </div>
     </div>
 
-    <!-- Slide 3 Custom Layout (shown only when slide 3 is active) -->
+    <!-- Slide 3 Layout -->
     <div id="slide-3-layout">
 
       <!-- Left column: narrative -->
-      <div class="s3-sidebar">
-
+      <div class="s3-left">
         <div class="glass-card s3-narrative" id="s3-narrative-card">
           <div class="narrative-header">
             <span class="narrative-slide-number" id="s3-narrative-lbl"></span>
@@ -251,11 +226,10 @@
             <div class="takeaway-text" id="s3-takeaway-text"></div>
           </div>
         </div>
-
       </div>
 
-      <!-- Middle column: two stacked charts -->
-      <div class="s3-charts">
+      <!-- Mid column: two stacked charts -->
+      <div class="s3-mid">
 
         <div class="glass-card s3-chart-card">
           <div class="glass-card-title" style="display:flex; justify-content:space-between; align-items:center;">
@@ -280,35 +254,31 @@
       </div>
 
       <!-- Right column: KPI cards -->
-      <div class="s3-kpis">
-
+      <div class="s3-right">
         <div class="glass-card metric-card" id="kpi-s3-1">
           <span class="metric-label">Fossil Fuel Draw</span>
           <span class="metric-value">--</span>
           <span class="metric-trend neutral"><span>--</span></span>
         </div>
-
         <div class="glass-card metric-card" id="kpi-s3-2">
           <span class="metric-label">Clean Green Ratio</span>
           <span class="metric-value">--</span>
           <span class="metric-trend up"><span>--</span></span>
         </div>
-
         <div class="glass-card metric-card" id="kpi-s3-3">
           <span class="metric-label">U.S. Grid Size</span>
           <span class="metric-value">--</span>
           <span class="metric-trend neutral"><span>--</span></span>
         </div>
-
       </div>
 
     </div>
 
-    <!-- Slide 4 Custom Layout -->
+    <!-- Slide 4 Layout -->
     <div id="slide-4-layout">
 
-      <!-- Left: narrative only -->
-      <div class="s4-sidebar">
+      <!-- Left column: narrative -->
+      <div class="s4-left">
         <div class="glass-card s4-narrative" id="s4-narrative-card">
           <div class="narrative-header">
             <span class="narrative-slide-number" id="s4-narrative-lbl"></span>
@@ -322,8 +292,8 @@
         </div>
       </div>
 
-      <!-- Middle: workforce unit chart + wage bar chart stacked -->
-      <div class="s4-charts">
+      <!-- Mid column: workforce unit chart + wage bar chart -->
+      <div class="s4-mid">
         <div class="glass-card s4-chart-card">
           <div class="glass-card-title" style="display:flex; justify-content:space-between; align-items:center;">
             <div style="display:flex; flex-direction:column;">
@@ -344,8 +314,8 @@
         </div>
       </div>
 
-      <!-- Right: KPI cards -->
-      <div class="s4-kpis">
+      <!-- Right column: KPI cards -->
+      <div class="s4-right">
         <div class="glass-card metric-card" id="kpi-s4-1">
           <span class="metric-label">Workforce Role</span>
           <span class="metric-value">0</span>
@@ -375,7 +345,6 @@
         arrow keys to navigate.
       </div>
 
-      <!-- Core nav buttons -->
       <div class="slide-nav-controls">
         <button id="btn-slide-prev" class="btn-nav" aria-label="Previous Slide">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
@@ -385,7 +354,6 @@
           Back
         </button>
 
-        <!-- Slide Indicators -->
         <div class="slide-indicators" id="slide-indicators-wrapper">
           <div class="slide-dot active" data-index="0" role="button" aria-label="Go to Slide 1"></div>
           <div class="slide-dot" data-index="1" role="button" aria-label="Go to Slide 2"></div>

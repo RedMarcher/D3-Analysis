@@ -188,7 +188,7 @@ export class StreamChart {
     if (!this._smoothZoom) {
       this._smoothZoom = createSmoothZoom(this.overlayRect, {
         scaleExtent: [1, 20],
-        halfLife: 30,
+
         onUpdate: (displayT) => this._onZoomUpdate(displayT),
       });
     }

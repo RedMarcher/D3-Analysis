@@ -55,7 +55,7 @@ export class USMap {
 
     this._smoothZoom = createSmoothZoom(this.svg, {
       scaleExtent: [1, 64],
-      halfLife: 30,
+
       onUpdate: (t) => this._applyDisplay(t),
       onZoomChange: (k) => {
         if (this.config.onZoomChange) this.config.onZoomChange(k);

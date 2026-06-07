@@ -197,7 +197,7 @@ export class ScatterPlot {
     if (!this._smoothZoom) {
       this._smoothZoom = createSmoothZoom(this.g, {
         scaleExtent: [1, 60],
-        halfLife: 30,
+
         onUpdate: (displayT) => this._onZoomUpdate(displayT),
       });
       this.zoom = this._smoothZoom.zoom;
